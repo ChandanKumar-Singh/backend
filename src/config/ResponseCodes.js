@@ -16,7 +16,7 @@ export default {
     INVALID_REQUEST: 'Invalid request parameters.',
     ACCESS_DENIED: 'Access Denied',
     TIMEOUT: 'Request timed out. Please try again later.',
-    VALIDATION_FAILED: 'Validation Failed: ${param}',
+    VALIDATION_FAILED: 'Validation Failed',
     USER_NOT_FOUND: (userId) => `User with ID ${userId} not found.`,
     UNAUTHORIZED_ACCESS: 'Unauthorized Access',
     FORBIDDEN: 'Forbidden action.',
@@ -64,7 +64,7 @@ export default {
 
   // User-related Errors
   USER_ERRORS: {
-    USER_ALREADY_EXISTS: (username) => `User with username ${username} already exists.`,
+    USER_ALREADY_EXISTS: (data) => `User with ${data} already exists.`,
     EMAIL_ALREADY_REGISTERED: (email) => `Email ${email} is already registered.`,
     INVALID_USER_INPUT: 'Invalid user input.',
     USER_ACCOUNT_INACTIVE: 'User account is inactive. Please contact support.',

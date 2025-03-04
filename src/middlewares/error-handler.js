@@ -29,9 +29,9 @@ export default function errorHandler(err, req, res, next) {
  * @param {Object} res - The response object.
  */
 function handleUnknownError(res) {
-  logger.error('An unknown error occurred.');
+  loggError(null, 'Unknown error occurred');
   return res.status(httpStatus.INTERNAL_SERVER_ERROR).json(
-    resConv(null, 0, 'An unknown error occurred.')
+    resConv(null, 'An unknown error occurred.', 0)
   );
 }
 
@@ -41,18 +41,9 @@ function handleUnknownError(res) {
  * @param {Object} res - The response object.
  */
 function handleApiError(err, res) {
-  // Log unexpected ApiErrors (non-operational errors)
-  if (!err.isOperational) {
-    logger.error('Non-operational error occurred:', {
-      message: err.message,
-      statusCode: err.statusCode,
-      responseCode: err.responseCode,
-      stack: err.stack,
-    });
-  }
-
+  loggError(err, 'Non-operational error occurred:');
   return res.status(err.statusCode || httpStatus.INTERNAL_SERVER_ERROR).json(
-    resConv(null, 0, err.message || 'An error occurred', {
+    resConv(null, err.message || 'An error occurred', 0, {
       errorDetails: err.error || null,
       responseCode: err.responseCode || ResponseCodes.GENERAL_ERROR,
       stackTrace: Constants.IS_PRODUCTION ? null : err.stack, // Hide stack in production
@@ -60,20 +51,17 @@ function handleApiError(err, res) {
   );
 }
 
+
 /**
  * Handles validation errors (e.g., from Mongoose or other validation libraries).
  * @param {Object} err - The error object.
  * @param {Object} res - The response object.
  */
 function handleValidationError(err, res) {
-  logger.error('Validation error occurred:', {
-    message: err.message,
-    errors: err.errors,
-    stack: err.stack,
-  });
+  loggError(err, 'Validation error occurred');
 
   return res.status(httpStatus.BAD_REQUEST).json(
-    resConv(err.errors, 0, 'Validation failed.', {
+    resConv(err.errors, 'Validation failed.', 0, {
       stackTrace: Constants.IS_PRODUCTION ? null : err.stack, // Hide stack in production
     })
   );
@@ -85,14 +73,11 @@ function handleValidationError(err, res) {
  * @param {Object} res - The response object.
  */
 function handleDuplicateError(err, res) {
-  logger.error('Duplication error occurred:', {
-    message: err.message,
-    errors: err.errorResponse,
-    stack: err.stack,
-  });
+
+  loggError(err, 'Duplicate key error occurred');
 
   return res.status(httpStatus.BAD_REQUEST).json(
-    resConv(extractDuplicateErrorMessage(err.errorResponse), 0, 'Already exists', {
+    resConv(extractDuplicateErrorMessage(err.errorResponse), 'Already exists', 0, {
       stackTrace: Constants.IS_PRODUCTION ? null : err.stack, // Hide stack in production
     })
   );
@@ -104,14 +89,9 @@ function handleDuplicateError(err, res) {
  * @param {Object} res - The response object.
  */
 function handleUnexpectedError(err, res) {
-  logger.error('Unexpected error occurred:', {
-    message: err.message,
-    stack: err.stack,
-    statusCode: err.status || httpStatus.INTERNAL_SERVER_ERROR,
-  });
-
+  loggError(err, 'Unexpected error occurred');
   return res.status(err.status || httpStatus.INTERNAL_SERVER_ERROR).json(
-    resConv(null, 0, 'Internal server error.', {
+    resConv(null, 'Internal server error.', 0, {
       errorDetails: Constants.IS_PRODUCTION ? null : err.stack, // Hide stack in production
       responseCode: ResponseCodes.SERVER_ERROR,
       stackTrace: Constants.IS_PRODUCTION ? null : err.stack, // Include stack trace for debugging in dev environments
@@ -142,4 +122,20 @@ function extractDuplicateErrorMessage(error) {
 
   // If the error is not a duplicate key error or doesn't match the pattern, return a generic message
   return 'An error occurred. Please check the error details.';
+}
+
+/**
+ * 
+ * @param {Object} err  - The error object.
+ * @param {string} reason  - The reason for the error.
+ */
+function loggError(err, reason) {
+  if (!err.isOperational || Constants.envs.production) {
+    logger.error(err.message || reason, {
+      // message: err.message,
+      // statusCode: err.statusCode,
+      // responseCode: err.responseCode,
+      stack: err.stack,
+    });
+  }
 }

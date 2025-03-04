@@ -1,5 +1,10 @@
 import dotenv from 'dotenv';
 dotenv.config();
+import { fileURLToPath } from 'url';
+import path from 'path';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 
 const Constants = {
     db: {
@@ -31,7 +36,35 @@ const Constants = {
             USER: 'USER',
             MEMBER: 'MEMBER',
             PARTICIPANT: 'PARTICIPANT',
+        },
+        adminRole: {
+            GENERAL: 'GENERAL',
+            CHAPTER_ADMIN: 'CHAPTER_ADMIN',
         }
+    },
+    USER_STATUS: {
+        ACTIVE: 'ACTIVE',
+        RESIGNED: 'RESIGNED',
+        TERMINATED: 'TERMINATED',
+        RETIRED: 'RETIRED',
+        EXPIRED: 'EXPIRED',
+        ABSCONDED: 'ABSCONDED',
+        INACTIVE: 'INACTIVE',
+        SUSPENDED: 'SUSPENDED',
+        DELETED: 'DELETED',
+    },
+    TIME_ZONE: process.env.TIME_ZONE || 5.5,
+    TIME_ZONE_NAME: process.env.TIME_ZONE_NAME || 'Asia/Kolkata',
+    DATE_TIME_FORMAT: '%Y-%m-%d | %H:%M',
+    DATE_FORMAT: '%Y-%m-%d',
+    TIME_FORMAT: '%H:%M:%S',
+
+    path: {
+        root: path.normalize(__dirname + '/..'),
+        root_public: path.normalize(__dirname + '/..') + '/public/',
+        public_url: process.env.URL + '/public/',
+        DEFAULT_USER_IMAGE: 'default_user_image.jpg',
+        DEFAULT_USER_IMAGE_PATH: 'user_images/'
     }
 }
 
