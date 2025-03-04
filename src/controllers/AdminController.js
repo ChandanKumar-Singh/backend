@@ -1,0 +1,78 @@
+import Constants from "../config/constants.js";
+import UserDBO from "../dbos/UserDBO.js";
+import catchAsync from "../lib/catchAsync.js";
+import FileUploadUtils from "../utils/FileUpload.utils.js";
+import httpStatus from 'http-status'
+import resConv from "../utils/resConv.js";
+import AuthenticateDBO from "../dbos/AuthenticateDBO.js";
+import { withTransaction } from "../lib/mongoose.utils.js";
+
+class AdminController {
+    uploadImage = catchAsync(async (req, res, next) => {
+        const tempUpload = await FileUploadUtils.uploadFiles(
+            req,
+            res,
+            [{ name: 'image', maxCount: 2 }],
+            Constants.path.DEFAULT_USER_IMAGE_PATH
+        );
+        let file = null;
+        if ('image' in tempUpload.files && tempUpload.files.image.length > 0) {
+            file = tempUpload.files.image[0];
+        }
+
+        req.body = {
+            ...req.body,
+            ...tempUpload.body,
+            image: file ? Constants.path.DEFAULT_USER_IMAGE_PATH + file.filename : null,
+        };
+        next();
+    });
+    uploadImages = catchAsync(async (req, res, next) => {
+        const tempUpload = await FileUploadUtils.uploadFiles(
+            req,
+            res,
+            [
+                { name: 'thumbnail', maxCount: 1 },
+                // { name: 'images', maxCount: 50 },
+                // { name: 'videos', maxCount: 10 },
+            ],
+            Constants.path.DEFAULT_USER_IMAGE_PATH
+        );
+
+        let thumbnail = null;
+        if ('thumbnail' in tempUpload.files && tempUpload.files.thumbnail.length > 0) {
+            thumbnail = tempUpload.files.thumbnail[0];
+        }
+
+        let images = [];
+        if ('images' in tempUpload.files && tempUpload.files.images.length > 0) {
+            images = tempUpload.files.images;
+        }
+
+        let videos = [];
+        if ('videos' in tempUpload.files && tempUpload.files.videos.length > 0) {
+            videos = tempUpload.files.videos;
+        }
+
+        req.body = {
+            ...req.body,
+            ...tempUpload.body,
+            thumbnail: thumbnail ? Constants.path.DEFAULT_USER_IMAGE_PATH + thumbnail.filename : null,
+            images: images.map((i) => Constants.path.DEFAULT_USER_IMAGE_PATH + i.filename),
+            videos: videos.map((i) => Constants.path.DEFAULT_USER_IMAGE_PATH + i.filename),
+        };
+        next();
+    });
+
+    list = catchAsync(async (req, res) => {
+        const { query_data } = req.body;
+        const users = await UserDBO.getAllAdmins(req);
+        res.status(httpStatus.OK).send(resConv(users));
+    });
+    create = catchAsync(async (req, res) => {
+        let response = await AuthenticateDBO.createAdmin(req.body, { session: null });
+        res.status(httpStatus.OK).send(resConv(response));
+    });
+}
+
+export default new AdminController();

@@ -7,39 +7,49 @@ import Constants from "../config/constants.js";
 import ResponseCodes from "../config/ResponseCodes.js";
 import resConv from "../utils/resConv.js";
 import { logg } from "../utils/logger.js";
+import httpStatus from 'http-status'
 
-const sessionSecret = Constants.security.sessionSecret;
+const { sessionSecret } = Constants.security;
 
 /**
- * Common middleware for authentication based on role
- * @param {string} role - Role to authenticate (e.g., "ADMIN", "USER")
+ * Extracts and verifies JWT token from the request headers.
+ * @param {string} token - The JWT token from authorization header.
+ * @returns {Promise<object>} - Resolves with decoded user data or rejects with an error.
  */
-const authenticate = (role) => (req, res, next) => {
-  const { authorization } = req.headers;
-  logg("Authorization:", authorization);
-
-  const response = {
-    code: 401,
-    message: ResponseCodes.ERROR.UNAUTHORIZED_ACCESS,
-    data: null
-  };
-
-  if (!authorization || !authorization.startsWith("Bearer ")) {
-    return res.status(401).json(resConv(...response));
-  }
-
-  const token = authorization.split(" ")[1];
-
-  jwt.verify(token, sessionSecret, async (err, decoded) => {
-    if (err || !decoded) {
-      response.message = ResponseCodes.ERROR.INVALID_TOKEN;
-      response.data = err;
-      return res.status(401).json(resConv(...response));
-    }
-    req.user = decoded;
-    req.sender = Constants.roles.userRoles[role] || "UNKNOWN_ROLE";
-    next();
+const verifyToken = (token) => {
+  return new Promise((resolve, reject) => {
+    jwt.verify(token, sessionSecret, (err, decoded) => {
+      if (err || !decoded) {
+        logg("JWT Verification Failed:", err?.message || "Invalid Token");
+        return reject({ message: ResponseCodes.ERROR.INVALID_TOKEN, error: err });
+      }
+      resolve(decoded);
+    });
   });
+};
+
+/**
+ * Middleware for authentication based on user role.
+ * @param {string} role - Role to authenticate (e.g., "ADMIN", "USER").
+ */
+const authenticate = (role) => async (req, res, next) => {
+  try {
+    const { authorization } = req.headers;
+    logg("Authorization Header:", authorization);
+
+    if (!authorization || !authorization.startsWith("Bearer ")) {
+      return res.status(httpStatus.UNAUTHORIZED).json(resConv(null, ResponseCodes.ERROR.UNAUTHORIZED_ACCESS, 0, new Error().stack));
+    }
+
+    const token = authorization.split(" ")[1];
+    req.user = await verifyToken(token);
+    req.sender = Constants.roles.userRoles[role] || "UNKNOWN_ROLE";
+
+    logg(`User Authenticated: Role=${req.sender}, ID=${req.user?.id || "N/A"}`);
+    next();
+  } catch (error) {
+    return res.status(httpStatus.UNAUTHORIZED).json(resConv(error.error, error.message, 0, new Error().stack));
+  }
 };
 
 // Export specific middlewares for different roles

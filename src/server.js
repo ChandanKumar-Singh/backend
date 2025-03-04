@@ -1,10 +1,4 @@
 import express from 'express';
-import { fileURLToPath } from 'url';
-import path from 'path';
-// ✅ Manually define __dirname for ES Modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 import cors from 'cors';
 import connectDB from './core/database.js';
 import compression from "compression";
@@ -16,6 +10,8 @@ import helmet from "helmet";
 import { assignQueryAndParamsToBody } from './middlewares/index.js';
 import routes from './routes/index.js';
 import errorHandler from './middlewares/error-handler.js';
+import Constants from './config/constants.js';
+import { logg } from './utils/logger.js';
 const app = express();
 app.use(cors());
 app.use(bodyParser.json({ limit: "50mb" }));
@@ -28,8 +24,7 @@ app.use(assignQueryAndParamsToBody);
 app.use(expressvalidator.check());
 // Set the view engine to EJS
 app.set("view engine", "ejs");
-app.use("/public", express.static(`${__dirname}/public`));
-
+app.use("/public", express.static(Constants.path.root_public));
 
 const PORT = process.env.PORT || 3000;
 
