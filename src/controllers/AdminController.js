@@ -6,6 +6,7 @@ import httpStatus from 'http-status'
 import resConv from "../utils/resConv.js";
 import AuthenticateDBO from "../dbos/AuthenticateDBO.js";
 import { withTransaction } from "../lib/mongoose.utils.js";
+import { logg } from "../utils/logger.js";
 
 class AdminController {
     uploadImage = catchAsync(async (req, res, next) => {
@@ -65,13 +66,21 @@ class AdminController {
     });
 
     list = catchAsync(async (req, res) => {
-        const { query_data } = req.body;
         const users = await UserDBO.getAllAdmins(req);
         res.status(httpStatus.OK).send(resConv(users));
     });
-    create = catchAsync(async (req, res) => {
-        let response = await AuthenticateDBO.createAdmin(req.body, { session: null });
+    create = catchAsync(async (req, res) => withTransaction(async (session) => {
+        let response = await AuthenticateDBO.createAdmin(req.body, { session: session });
         res.status(httpStatus.OK).send(resConv(response));
+    }));
+    login = catchAsync(async (req, res) => withTransaction(async (session) => {
+        let response = await AuthenticateDBO.login(req.body, { session: session });
+        res.status(httpStatus.OK).send(resConv(response));
+    }));
+
+    deleteAll = catchAsync(async (req, res) => {
+        await AuthenticateDBO.deleteAllAdmins(req);
+        res.status(httpStatus.OK).send(resConv({}));
     });
 }
 

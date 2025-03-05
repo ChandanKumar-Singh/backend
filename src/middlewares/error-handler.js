@@ -1,6 +1,6 @@
 import Constants from '../config/constants.js';
 import ResponseCodes from '../config/ResponseCodes.js';
-import { logger } from '../utils/logger.js';
+import { logg, logger } from '../utils/logger.js';
 import ApiError from './ApiError.js';
 import resConv from '../utils/resConv.js';
 import httpStatus from 'http-status';
@@ -130,12 +130,14 @@ function extractDuplicateErrorMessage(error) {
  * @param {string} reason  - The reason for the error.
  */
 function loggError(err, reason) {
-  if (!err.isOperational || Constants.envs.production) {
+  if (!err.isOperational && Constants.envs.production) {
     logger.error(err.message || reason, {
       // message: err.message,
       // statusCode: err.statusCode,
       // responseCode: err.responseCode,
       stack: err.stack,
     });
+  }else{
+    console.error(err)
   }
 }

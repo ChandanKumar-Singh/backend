@@ -12,7 +12,7 @@ import AuthenticateUtils from "../lib/AuthenticateUtils.js";
 import { logg } from "../utils/logger.js";
 
 class AuthenticateDBO {
-  getUser = async (contactPr, isAdmin = false) => {
+  getUser = async (contactPr, isAdmin = false, { session = null } = {}) => {
     if (contactPr) {
       const { contact, country_code } = getCountryContact(contactPr);
       const query = { country_code, contact };
@@ -26,19 +26,19 @@ class AuthenticateDBO {
           { is_member: true },
         ];
       }
-      return mongoOne(await UserModel.find({ ...query }));
+      return mongoOne(await UserModel.find({ ...query }).session(session));
     }
     return null;
   };
 
-  processAdminAuthentication = async (tempAuth) => {
+  processAdminAuthentication = async (tempAuth, { session }) => {
     const uniqueKey = AuthenticateUtils.makeid();
     const token = tempAuth.generateToken(uniqueKey);
-    const userDetails = await UserDBO.getById(tempAuth._id);
+    const userDetails = await UserDBO.getById(tempAuth._id, { session: session });
     return {
       token: token,
       user_id: tempAuth._id,
-      role: tempAuth.role,
+      type: tempAuth.type,
       ...userDetails,
     };
   };
@@ -46,7 +46,6 @@ class AuthenticateDBO {
   processAppAuthentication = async (tempAuth) => {
     const uniqueKey = AuthenticateUtils.makeid();
     const token = tempAuth.generateToken(uniqueKey);
-
     const userDetails = await UserDBO.getById(tempAuth._id);
     AuthenticateUtils.add(Constants.REDIS_KEY.USER_AUTH + tempAuth._id, {
       uniquekey: uniqueKey,
@@ -88,14 +87,14 @@ class AuthenticateDBO {
     }
   };
 
-  createAdmin = async (req, { session }) => {
+  createAdmin = async (req, { session = null } = {}) => {
     const { contact, country_code, password, name, email, role, type } = req;
     const tempAuth = await this.getUser(contact, true, { session: session });
-    /* if (tempAuth)
+    if (tempAuth)
       throw new ApiError(
         httpStatus.OK,
         ResponseCodes.USER_ERRORS.USER_ALREADY_EXISTS(contact)
-      ); */
+      );
     let user = new UserModel({
       contact,
       country_code,
@@ -106,8 +105,8 @@ class AuthenticateDBO {
       type,
       status: Constants.USER_STATUS.ACTIVE,
     });
-    await user.save({session});
-    return await this.processAdminAuthentication(user);
+    await user.save({ session });
+    return await this.processAdminAuthentication(user, { session: session });
   };
 
   sendOtp = async (contact, isAdmin = false) => {
@@ -156,10 +155,12 @@ class AuthenticateDBO {
     }
   };
 
-  login = async (code, password, lat, lng) => {
-    const tempAuth = await this.getUser(code);
+  login = async (data) => {
+    const { username, password, lat, lng } = data;
+    const tempAuth = await this.getUser(username);
+    if (!tempAuth) throw new ApiError(httpStatus.OK, "Account not found");
 
-    if (!tempAuth || !tempAuth.authenticate(password)) {
+    if (!tempAuth.authenticate(password)) {
       const err = new ApiError(
         httpStatus.OK,
         "Invalid credentials! Please verify."
@@ -347,7 +348,7 @@ class AuthenticateDBO {
       user.city = city;
       user.email = email;
       await user.save();
-      return await UserDBO.getById(user._id, true);
+      return await UserDBO.getById(user._id, true, { shouldForce: false });
     }
   };
 
@@ -411,8 +412,14 @@ class AuthenticateDBO {
   };
 
   getAllAdmins = async () => {
-    return await UserModel.find({ type: Constants.USER_TYPES.ADMIN });
+    return await UserModel.find({ type: Constants.roles.userRoles.ADMIN });
+  }
+
+  deleteAllAdmins = async () => {
+    return await UserModel.deleteMany({ type: Constants.roles.userRoles.ADMIN });
   }
 }
 
 export default new AuthenticateDBO();
+
+

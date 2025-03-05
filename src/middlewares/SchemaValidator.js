@@ -1,30 +1,31 @@
 import Joi from "joi";
+import ResponseCodes from "../config/ResponseCodes.js";
 import ApiError from "./ApiError.js";
 import httpStatus from "http-status";
+import { logg } from "../utils/logger.js";
 import resConv from "../utils/resConv.js";
-import ResponseCodes from "../config/ResponseCodes.js";
 
-// SchemaValidator middleware to validate req.body, req.query, and req.params
+
+
 const SchemaValidator = (schema) => async (req, res, next) => {
   try {
-    const validSchema = {
-      ...schema.body,
-      ...schema.query,
-      ...schema.params,
-    };
     const reqs = {
       ...req.body,
       ...req.query,
       ...req.params,
     };
-
-    // Validate request using Joi
+    console.log("🔍 Request Data:", reqs);
+    let validSchema = {};
+    if (schema.body) validSchema = { ...validSchema, ...schema.body };
+    if (schema.query) validSchema = { ...validSchema, ...schema.query };
+    if (schema.params) validSchema = { ...validSchema, ...schema.params };
+    logg(typeof validSchema);
     const { value, error } = Joi.object(validSchema)
       .prefs({ errors: { label: "key" }, abortEarly: false })
       .validate(reqs);
 
     if (error) {
-      var errors = {};
+      let errors = {};
       const errorMessage = error.details
         .map((detail) => {
           const field = detail.path.join(".");
@@ -32,19 +33,24 @@ const SchemaValidator = (schema) => async (req, res, next) => {
           errors[field] = message;
           return `The "${field}" field ${message}`;
         })
-        .join("; "); // Better separator for readability
+        .join("; ");
 
-      return res.status(httpStatus.BAD_REQUEST).send(resConv(errors, ResponseCodes.ERROR.VALIDATION_FAILED));
+      return res
+        .status(httpStatus.BAD_REQUEST)
+        .send(resConv(errors, ResponseCodes.ERROR.VALIDATION_FAILED));
     }
 
-    // Assign validated values to the request object
     Object.assign(req, value);
     return next();
   } catch (err) {
     return next(
       new ApiError(
         httpStatus.INTERNAL_SERVER_ERROR,
-        "An unexpected error occurred during validation."
+        "An unexpected error occurred during validation.",
+        true,
+        null,
+        0,
+        err
       )
     );
   }

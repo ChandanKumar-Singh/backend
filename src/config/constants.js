@@ -54,11 +54,10 @@ const Constants = {
         DELETED: 'DELETED',
     },
     TIME_ZONE: process.env.TIME_ZONE || 5.5,
-    TIME_ZONE_NAME: process.env.TIME_ZONE_NAME || 'Asia/Kolkata',
+    TIME_ZONE_NAME: process.env.TIME_ZONE_NAME || 'UTC',
     DATE_TIME_FORMAT: '%Y-%m-%d | %H:%M',
     DATE_FORMAT: '%Y-%m-%d',
     TIME_FORMAT: '%H:%M:%S',
-
     path: {
         root: path.normalize(__dirname + '/..'),
         root_public: path.normalize(__dirname + '/..') + '/public/',
