@@ -1,9 +1,7 @@
-import mongoose from 'mongoose';
 import UserModel from '../models/UserModel.js'; // Adjust as needed
 import Constants from '../config/constants.js';
 import DateUtils from '../utils/DateUtils.js';
 import { mObj, mongoOne } from '../lib/mongoose.utils.js';
-import ApiError from '../middlewares/ApiError.js';
 import { logg } from '../utils/logger.js';
 
 class UserDBO {
@@ -17,13 +15,24 @@ class UserDBO {
      * @param {Object} project - Fields to include/exclude in response
      * @returns {Promise<Array>} - Returns formatted user data
      */
-    async fetchUsers(query = [], midQuery = [], project = {}, timezone = Constants.TIME_ZONE_NAME) {
+    async fetchUsers({
+        query = [],
+        midQuery = [],
+        project = {},
+        timezone = Constants.TIME_ZONE_NAME,
+        session = null,
+        paginate = false,
+        page = 1,
+        limit = 10,
+        sortBy = "createdAt",
+        sortOrder = -1,
+    } = {}) {
         try {
-            const users = await UserModel.aggregate([
+            const skip = (page - 1) * limit;
+
+            const pipeline = [
                 ...query,
                 ...midQuery,
-
-                // Lookup Roles
                 {
                     $lookup: {
                         from: 'roles',
@@ -32,8 +41,6 @@ class UserDBO {
                         as: 'roles',
                     },
                 },
-
-                // Lookup Address
                 {
                     $lookup: {
                         from: 'addresses',
@@ -43,8 +50,6 @@ class UserDBO {
                     },
                 },
                 { $unwind: { path: '$addressObj', preserveNullAndEmptyArrays: true } },
-
-                // Lookup Company
                 {
                     $lookup: {
                         from: 'companies',
@@ -54,8 +59,6 @@ class UserDBO {
                     },
                 },
                 { $unwind: { path: '$companyObj', preserveNullAndEmptyArrays: true } },
-
-                // Lookup Preferences
                 {
                     $lookup: {
                         from: 'preferences',
@@ -64,8 +67,6 @@ class UserDBO {
                         as: 'preferences',
                     },
                 },
-
-                // Computed Fields
                 {
                     $addFields: {
                         fullName: { $concat: ['$firstName', ' ', '$lastName'] },
@@ -80,14 +81,26 @@ class UserDBO {
                             },
                         },
                         isActive: { $eq: ['$status', 'active'] },
-                        approvedOnText: DateUtils.aggregate("$approved_on", { timezone: timezone }),
-                        createdAtText: DateUtils.aggregate("$createdAt", { timezone: timezone }),
-                        updatedAtText: DateUtils.aggregate("$updatedAt", { timezone: timezone }),
+                        approvedOnText: DateUtils.aggregate("$approved_on", { timezone }),
+                        createdAtText: DateUtils.aggregate("$createdAt", { timezone }),
+                        updatedAtText: DateUtils.aggregate("$updatedAt", { timezone }),
                         is_flagged: false,
                     },
-                },
+                }
+            ];
 
-                // Final Projection
+            // If only count is needed, return total count
+            /* if (count) {
+                pipeline.push({ $count: "totalCount" });
+                const result = await UserModel.aggregate(pipeline).session(session);
+                return result.length > 0 ? result[0].totalCount : 0;
+            } */
+
+            // Add sorting, pagination, and projection
+            pipeline.push(
+                { $sort: { [sortBy]: sortOrder } }, // Sorting
+                { $skip: skip }, // Pagination - Skip items
+                { $limit: limit }, // Pagination - Limit items
                 {
                     $project: {
                         id: '$_id',
@@ -156,24 +169,38 @@ class UserDBO {
 
                         ...project, // Extend projection dynamically
                     },
-                },
-            ]);
-            return users;
-            return users.map((user) => ({
-                ...user,
-                createdAtText: DateUtils.changeTimezoneFromUtc(user.createdAt, timezone, Constants.DATE_TIME_FORMAT),
-                updatedAtText: DateUtils.changeTimezoneFromUtc(user.updatedAt, timezone, Constants.DATE_TIME_FORMAT),
-            }));
+                }
+            );
+
+            // Run aggregation
+            const users = await UserModel.aggregate(pipeline).session(session);
+            if (!paginate)
+                return users;
+
+
+            // Fetch total count separately for pagination metadata
+            const total = await UserModel.countDocuments(query).session(session);
+
+            return {
+                total,
+                page,
+                limit,
+                pages: Math.ceil(total / limit),
+                users,
+            };
+
         } catch (error) {
+            console.error("fetchUsers Error:", error);
             throw error;
         }
     }
 
+
     getAllAdmins = async (q) => {
-        return await this.fetchUsers([{ $match: { type: Constants.roles.userRoles.ADMIN } }]);
+        return await this.fetchUsers({ query: [{ $match: { type: Constants.roles.userRoles.ADMIN } }], paginate: true, limit: 20 });
     }
 
-    getById = async (id, shouldForce = false) => {
+    getById = async (id, { session = null, shouldForce = false } = {}) => {
         // const redisKey = Constants.REDIS_KEY.USER_DETAIL;
         // const redisData = await RedisUtils.hmGetRedis(redisKey, id);
         // if (redisData && Constants.IS_REDIS_STORE && !shouldForce) {
@@ -182,7 +209,7 @@ class UserDBO {
         // throw new ApiError(403, 'Method not implemented.');
 
         const obj = mongoOne(
-            await this.fetchUsers([{ $match: { _id: mObj(id) } }])
+            await this.fetchUsers({ query: [{ $match: { _id: mObj(id) } }], session })
         );
         //   if (obj) {
         //     RedisUtils.setHMSetRedis(redisKey, {

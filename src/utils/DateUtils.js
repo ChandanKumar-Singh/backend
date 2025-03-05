@@ -4,6 +4,7 @@
 import moment from "moment";
 import { changeTimezoneFromUtc, formattedTimeZone } from "./datetime.utils.js";
 import Constants from "../config/constants.js";
+import { logg } from "./logger.js";
 
 class DateUtils {
   /**
@@ -12,17 +13,17 @@ class DateUtils {
   aggregate = (
     field,
     {
-      format = Constants.DATE_TIME_FORMAT,
       timezone = Constants.TIME_ZONE_NAME,
+      format = Constants.DATE_TIME_FORMAT,
       onNull = "Invalid date",
     } = {}
   ) => {
     return {
       $dateToString: {
-        format: format, // The format to apply
-        date: field, // The field to format
-        timezone: timezone, // Desired timezone
-        onNull: onNull, // Optional, if the field is missing
+        format: format,
+        date: field,
+        timezone: timezone,
+        onNull: onNull,
       },
     };
   };
