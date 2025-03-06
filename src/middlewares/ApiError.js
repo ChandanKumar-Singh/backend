@@ -13,17 +13,19 @@ class ApiError extends Error {
    * @param {string} [stack=''] - Optional stack trace for debugging purposes.
    * @param {number} [responseCode=0] - Custom response code for specific error handling.
    * @param {Error} [error] - Custom response code for specific error handling.
+   * @param {string} errorCode  - Custom error code for specific error handling.
    */
-  constructor(statusCode, message, isOperational = true, stack = '', responseCode = 0,error) {
+  constructor(statusCode, message, isOperational = true, stack = '', responseCode = 0, error, errorCode) {
     super(message);
-    
+
     // Ensuring the Error constructor is properly initialized
     this.name = this.constructor.name;
     this.statusCode = statusCode;           // HTTP status code (e.g., 404, 500)
     this.isOperational = isOperational;     // Flag to mark if error is expected/handled
-    this.responseCode = responseCode;   
+    this.responseCode = responseCode;
     this.error = error    // Custom response code (for custom error categories)
-    
+    this.errorCode = errorCode;
+
     // If the stack is provided, use it; otherwise, capture a fresh stack trace
     if (stack) {
       this.stack = stack;
@@ -40,6 +42,7 @@ class ApiError extends Error {
     return {
       message: this.message,
       statusCode: this.statusCode,
+      errorCode: this.errorCode,
       responseCode: this.responseCode,
       isOperational: this.isOperational,
       stack: this.isOperational ? this.stack : undefined, // Do not expose stack trace for operational errors
