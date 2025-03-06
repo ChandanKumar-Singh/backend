@@ -112,10 +112,9 @@ class AuthenticateDBO {
   sendOtp = async (contact, isAdmin = false) => {
     const tempAuth = await this.getUser(contact, isAdmin);
     if (tempAuth) {
-      if (tempAuth.status !== Constants.EMPLOYEE_STATUS.ACTIVE) {
+      if (tempAuth.status !== Constants.USER_STATUS.ACTIVE) {
         throw new ApiError(httpStatus.OK, "User Suspended");
       }
-
       const otp =
         tempAuth.contact === "8054212321" ? 7777 : generateVerificationCode();
       tempAuth.otp = otp;
@@ -159,7 +158,7 @@ class AuthenticateDBO {
     const { username, password, lat, lng } = data;
     const tempAuth = await this.getUser(username);
     if (!tempAuth) throw new ApiError(httpStatus.OK, "Account not found");
-
+    if (!username.includes('@')) this.sendOtp(username, tempAuth.type === Constants.roles.userRoles.ADMIN)
     if (!tempAuth.authenticate(password)) {
       const err = new ApiError(
         httpStatus.OK,
