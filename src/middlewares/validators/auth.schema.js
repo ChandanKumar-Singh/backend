@@ -11,7 +11,6 @@ const emailValidator = Joi.string()
 
 const customCountryPhoneValidator = Joi.string()
   .custom((value, helpers) => {
-    // Split input into parts (country code + phone number)
     const parts = value.split(" ");
     if (parts.length < 2) {
       return helpers.error("missingCode");
@@ -113,13 +112,13 @@ export const create = {
     name: Joi.string().required(),
     email: Joi.string().required(),
     role: Joi.string()
-      .valid(...Object.values(Constants.roles.adminRole)) // Use spread operator
+      .valid(...Object.values(Constants.roles.adminRole)) 
       .required()
       .messages({
         'any.only': `Role must be one of: ${Object.values(Constants.roles.adminRole).join(', ')}.`,
       }),
     type: Joi.string()
-      .valid(...Object.values(Constants.roles.userRoles)) // Use spread operator
+      .valid(...Object.values(Constants.roles.userRoles)) 
       .required()
       .messages({
         'any.only': `Type must be one of: ${Object.values(Constants.roles.userRoles).join(', ')}.`,
@@ -135,8 +134,28 @@ export const sendOTP = {
 
 export const verifyOTP = {
   body: {
-    contact: Joi.string().required(),
-    otp: Joi.string().required(),
+    username: Joi.string()
+    .trim()
+    .required()
+    .custom((value, helpers) => {
+      // Check if the input is an email
+      if (value.includes("@")) {
+        const { error } = emailValidator.validate(value);
+        if (error) return helpers.error("email");
+        return value;
+      }
+      // Validate phone number (with country code)
+      const { error: phoneError } = phoneValidator.validate(value);
+      if (phoneError) return helpers.message(phoneError.details[0].message);
+      return value;
+    })
+    .messages({
+      "any.required": "Username field is required",
+      "email": "Invalid email address",
+    }),
+    otp: Joi.string().required().length(6).messages({
+      "string.length": "OTP must be 6 characters long",
+    }),
   }
 };
 

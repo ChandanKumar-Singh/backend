@@ -9,6 +9,7 @@ router.get('/list', AdminMiddleware, AdminController.list);
 router.get('/deleteAll', AdminMiddleware, AdminController.deleteAll);
 router.post('/create', SchemaValidator(AuthSchema.create), AdminController.create);
 router.post('/login', SchemaValidator(AuthSchema.login), AdminController.login);
+router.post('/verifyOtp', SchemaValidator(AuthSchema.verifyOTP), AdminController.verifyOTP);
 
 
 export default router;

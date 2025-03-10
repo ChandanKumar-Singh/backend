@@ -10,12 +10,19 @@ import UserModel from "../models/UserModel.js";
 import ResponseCodes from "../config/ResponseCodes.js";
 import AuthenticateUtils from "../lib/AuthenticateUtils.js";
 import { logg } from "../utils/logger.js";
+import { generateVerificationCode } from "../utils/Helper.utils.js";
+import RolesUtil from "../lib/RolesUtil.js";
 
 class AuthenticateDBO {
   getUser = async (contactPr, isAdmin = false, { session = null } = {}) => {
     if (contactPr) {
-      const { contact, country_code } = getCountryContact(contactPr);
-      const query = { country_code, contact };
+      let query = {};
+      if (contactPr.includes('@')) {
+        query = { email: contactPr };
+      } else {
+        const { contact, country_code } = getCountryContact(contactPr);
+        query = { country_code, contact };
+      }
       if (isAdmin) {
         query["type"] = Constants.roles.userRoles.ADMIN;
       } else {
@@ -26,6 +33,8 @@ class AuthenticateDBO {
           { is_member: true },
         ];
       }
+      logg(query)
+
       return mongoOne(await UserModel.find({ ...query }).session(session));
     }
     return null;
@@ -43,14 +52,16 @@ class AuthenticateDBO {
     };
   };
 
-  processAppAuthentication = async (tempAuth) => {
+  processAppAuthentication = async (tempAuth, { session }) => {
     const uniqueKey = AuthenticateUtils.makeid();
     const token = tempAuth.generateToken(uniqueKey);
-    const userDetails = await UserDBO.getById(tempAuth._id);
+    const userDetails = await UserDBO.getById(tempAuth._id, { session: session });
+    /*     
+    /// Redis: USER_AUTH Store
     AuthenticateUtils.add(Constants.REDIS_KEY.USER_AUTH + tempAuth._id, {
-      uniquekey: uniqueKey,
-      ...userDetails,
-    });
+          uniquekey: uniqueKey,
+          ...userDetails,
+        }); */
     return {
       token: token,
       user_id: tempAuth._id,
@@ -89,7 +100,7 @@ class AuthenticateDBO {
 
   createAdmin = async (req, { session = null } = {}) => {
     const { contact, country_code, password, name, email, role, type } = req;
-    const tempAuth = await this.getUser(contact, true, { session: session });
+    const tempAuth = await this.getUser(country_code + ' ' + contact, true, { session: session });
     if (tempAuth)
       throw new ApiError(
         httpStatus.OK,
@@ -109,56 +120,58 @@ class AuthenticateDBO {
     return await this.processAdminAuthentication(user, { session: session });
   };
 
-  sendOtp = async (contact, isAdmin = false) => {
-    const tempAuth = await this.getUser(contact, isAdmin);
+  sendOtp = async (contact, isAdmin = false, { session }) => {
+    const tempAuth = await this.getUser(contact, isAdmin, { session: session });
     if (tempAuth) {
       if (tempAuth.status !== Constants.USER_STATUS.ACTIVE) {
         throw new ApiError(httpStatus.OK, "User Suspended");
       }
       const otp =
-        tempAuth.contact === "8054212321" ? 7777 : generateVerificationCode();
+        tempAuth.contact === "8054212321" ? 777777 : generateVerificationCode();
       tempAuth.otp = otp;
-      await tempAuth.save();
-      EmailUtils.sendLoginOTPEmail(tempAuth.email, { otp });
-      SmsUtils.sendOTP(
-        tempAuth.name,
-        `+${tempAuth.country_code} ${tempAuth.contact}`,
-        otp
-      );
+      await tempAuth.save({ session });
+      /*  EmailUtils.sendLoginOTPEmail(tempAuth.email, { otp });
+       SmsUtils.sendOTP(
+         tempAuth.name,
+         `+${tempAuth.country_code} ${tempAuth.contact}`,
+         otp
+       ); */
       return {
-        message: "OTP SENT",
+        message: "A verification code has been sent to your registered mobile number/email",
       };
     }
     throw new ApiError(httpStatus.OK, "User not found");
   };
 
-  verifyOTP = async (contact, otp, isAdmin = false) => {
-    const tempAuth = await this.getUser(contact, isAdmin);
-
+  verifyOTP = async (contact, otp, { isAdmin = false, session = null } = {}) => {
+    const tempAuth = await this.getUser(contact, isAdmin, { session });
     if (tempAuth && tempAuth.status !== Constants.USER_STATUS.ACTIVE) {
       throw new ApiError(httpStatus.OK, "User Suspended");
     }
-
     if (!tempAuth || tempAuth.otp !== otp) {
+      logg("otp", tempAuth?.otp, otp);
       const err = new ApiError(httpStatus.OK, "Incorrect OTP Entered");
       throw err;
     }
 
     tempAuth.last_login = new Date();
     tempAuth.otp = Date.now();
-    tempAuth.save().then(() => { });
+    await tempAuth.save({ session }).then(() => { });
     if (isAdmin) {
-      return await this.processAdminAuthentication(tempAuth);
+      return await this.processAdminAuthentication(tempAuth, { session: session });
     } else {
-      return await this.processAppAuthentication(tempAuth);
+      return await this.processAppAuthentication(tempAuth, { session });
     }
   };
 
-  login = async (data) => {
-    const { username, password, lat, lng } = data;
+  login = async (data, { session = null } = {}) => {
+    const { username, password } = data;
     const tempAuth = await this.getUser(username);
     if (!tempAuth) throw new ApiError(httpStatus.OK, "Account not found");
-    if (!username.includes('@')) this.sendOtp(username, tempAuth.type === Constants.roles.userRoles.ADMIN)
+    if (!username.includes('@')) {
+      var res = await this.sendOtp(username, tempAuth.type === Constants.roles.userRoles.ADMIN, { session: session })
+      return res;
+    }
     if (!tempAuth.authenticate(password)) {
       const err = new ApiError(
         httpStatus.OK,
@@ -167,35 +180,36 @@ class AuthenticateDBO {
       throw err;
     }
 
-    if (tempAuth && tempAuth.status !== Constants.EMPLOYEE_STATUS.ACTIVE) {
+    if (tempAuth && tempAuth.status !== Constants.USER_STATUS.ACTIVE) {
       throw new ApiError(httpStatus.OK, "User Suspended", true, "", -1);
     }
 
     tempAuth.last_login = new Date();
-    tempAuth.save().then(() => { });
+    await tempAuth.save({ session });
     const uniqueKey = AuthenticateUtils.makeid();
     const token = tempAuth.generateToken(uniqueKey);
     const role = RolesUtil.calculateRole(
       tempAuth.department_id,
       tempAuth.emp_code
     );
-    AuthenticateUtils.add(Constants.REDIS_KEY.USER_AUTH + tempAuth._id, {
-      uniquekey: uniqueKey,
-      id: tempAuth._id.toString(),
-      name_en: `${tempAuth.name_en}`,
-      name_hi: `${tempAuth.name_hi}`,
-      emp_code: tempAuth.emp_code,
-      location_id: tempAuth.location_id,
-      department_id: tempAuth.department_id,
-      role: role,
-    });
-    const empDetails = await EmployeeDBO.getById(tempAuth._id);
+    /*  /// Redis: USER_AUTH Store 
+     AuthenticateUtils.add(Constants.REDIS_KEY.USER_AUTH + tempAuth._id, {
+       uniquekey: uniqueKey,
+       id: tempAuth._id.toString(),
+       name_en: `${tempAuth.name_en}`,
+       name_hi: `${tempAuth.name_hi}`,
+       emp_code: tempAuth.emp_code,
+       location_id: tempAuth.location_id,
+       department_id: tempAuth.department_id,
+       role: role,
+     }); */
+    // const empDetails = await EmployeeDBO.getById(tempAuth._id);
     return {
       token: token,
       user_id: tempAuth._id,
       role: role,
       ...tempAuth.toJSON(),
-      ...empDetails,
+      // ...empDetails,
     };
   };
 
@@ -210,9 +224,10 @@ class AuthenticateDBO {
   };
 
   logoutUser = async (userId) => {
+    /* /// Redis: USER_AUTH Remove 
     await RedisUtils.deleteRedisKey(
       Constants.REDIS_KEY.USER_AUTH + userId.toString()
-    );
+    ); */
     CaptureInfoModel.updateMany(
       { user_id: mongoose.Types.ObjectId(userId) },
       { user_id: null }
@@ -356,9 +371,11 @@ class AuthenticateDBO {
     if (user) {
       user.status = Constants.USER_STATUS.DELETED;
       await user.save();
-      await RedisUtils.deleteRedisKey(
+
+      /* /// Redis: Remove USER_AUTH
+       await RedisUtils.deleteRedisKey(
         `${Constants.REDIS_KEY.USER_AUTH}${userId.toString()}`
-      );
+      ); */
       return await UserDBO.getById(user._id);
     }
   };
