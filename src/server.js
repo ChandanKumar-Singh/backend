@@ -4,14 +4,12 @@ import connectDB from './core/database.js';
 import compression from "compression";
 import bodyParser from "body-parser";
 import expressvalidator from "express-validator";
-//  logger
 import morgan from "morgan";
 import helmet from "helmet";
 import { assignQueryAndParamsToBody } from './middlewares/index.js';
 import routes from './routes/index.js';
 import errorHandler from './middlewares/error-handler.js';
 import Constants from './config/constants.js';
-import { logg } from './utils/logger.js';
 const app = express();
 app.use(cors());
 app.use(bodyParser.json({ limit: "50mb" }));

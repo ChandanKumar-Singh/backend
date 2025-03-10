@@ -16,7 +16,7 @@ const Constants = {
         test: process.env.NODE_ENV === 'test' || 'local',
         local: process.env.NODE_ENV === 'local',
         development: process.env.NODE_ENV === 'development' || 'local',
-        production: process.env.NODE_ENV === 'production' || 'local',
+        production: process.env.NODE_ENV === 'production',
     },
     routes: {
         view: '/',
@@ -40,7 +40,15 @@ const Constants = {
         adminRole: {
             GENERAL: 'GENERAL',
             CHAPTER_ADMIN: 'CHAPTER_ADMIN',
-        }
+        },
+        role:{
+            OWNER: 'OWNER',
+            SHOWROOM_MANAGER: 'SHOWROOM_MANAGER',
+            OTHERS: 'OTHERS',
+            CORPORATE_HR: 'CORPORATE_HR',
+
+        },
+
     },
     USER_STATUS: {
         ACTIVE: 'ACTIVE',

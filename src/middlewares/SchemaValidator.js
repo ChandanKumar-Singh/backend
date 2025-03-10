@@ -19,7 +19,6 @@ const SchemaValidator = (schema) => async (req, res, next) => {
     if (schema.body) validSchema = { ...validSchema, ...schema.body };
     if (schema.query) validSchema = { ...validSchema, ...schema.query };
     if (schema.params) validSchema = { ...validSchema, ...schema.params };
-    logg(typeof validSchema);
     const { value, error } = Joi.object(validSchema)
       .prefs({ errors: { label: "key" }, abortEarly: false })
       .validate(reqs);

@@ -28,6 +28,7 @@ class AdminController {
         };
         next();
     });
+
     uploadImages = catchAsync(async (req, res, next) => {
         const tempUpload = await FileUploadUtils.uploadFiles(
             req,
@@ -69,12 +70,20 @@ class AdminController {
         const users = await UserDBO.getAllAdmins(req);
         res.status(httpStatus.OK).send(resConv(users));
     });
+
     create = catchAsync(async (req, res) => withTransaction(async (session) => {
         let response = await AuthenticateDBO.createAdmin(req.body, { session: session });
         res.status(httpStatus.OK).send(resConv(response));
     }));
+
     login = catchAsync(async (req, res) => withTransaction(async (session) => {
         let response = await AuthenticateDBO.login(req.body, { session: session });
+        res.status(httpStatus.OK).send(resConv(response));
+    }));
+
+    verifyOTP = catchAsync(async (req, res) => withTransaction(async (session) => {
+        const { username, otp } = req.body;
+        let response = await AuthenticateDBO.verifyOTP(username, otp, { session: session });
         res.status(httpStatus.OK).send(resConv(response));
     }));
 
