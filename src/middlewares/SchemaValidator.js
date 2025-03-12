@@ -33,25 +33,24 @@ const SchemaValidator = (schema) => async (req, res, next) => {
           return `The "${field}" field ${message}`;
         })
         .join("; ");
-
+      throw new ApiError(
+        httpStatus.INTERNAL_SERVER_ERROR,
+        ResponseCodes.ERROR.VALIDATION_FAILED,
+        true,
+        null,
+        0,
+        errors
+      );
       return res
         .status(httpStatus.BAD_REQUEST)
-        .send(resConv(errors, ResponseCodes.ERROR.VALIDATION_FAILED));
+        .send(resConv(errors, ResponseCodes.ERROR.VALIDATION_FAILED, 0, new Error().stack));
     }
 
     Object.assign(req, value);
     return next();
+    
   } catch (err) {
-    return next(
-      new ApiError(
-        httpStatus.INTERNAL_SERVER_ERROR,
-        "An unexpected error occurred during validation.",
-        true,
-        null,
-        0,
-        err
-      )
-    );
+    return next(err);
   }
 };
 

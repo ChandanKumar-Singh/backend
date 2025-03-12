@@ -2,55 +2,9 @@ import Constants from '../../config/constants.js';
 
 import Joi from "joi";
 import { logg } from '../../utils/logger.js';
+import { emailValidator, phoneValidator } from './common_schemas.js';
 
-const emailValidator = Joi.string()
-  .email({ tlds: { allow: false } })
-  .messages({
-    "string.email": "Invalid email address",
-  });
 
-const customCountryPhoneValidator = Joi.string()
-  .custom((value, helpers) => {
-    const parts = value.split(" ");
-    if (parts.length < 2) {
-      return helpers.error("missingCode");
-    }
-
-    const countryCode = parts[0]; // Extract country code
-    const phoneNumber = parts.slice(1).join(" "); // Extract phone number
-
-    // Country code validation
-    const codePattern = /^\+\d{1,3}$/;
-    if (!codePattern.test(countryCode)) {
-      return helpers.error("invalidCode");
-    }
-
-    // Full phone number validation
-    const phonePattern = /^\d{6,14}$/; // Only numbers after the country code
-    if (!phonePattern.test(phoneNumber)) {
-      return helpers.error("invalidFormat");
-    }
-
-    return value;
-  })
-  .messages({
-    "missingCode": "Missing country code (e.g., +91 9876543211)",
-    "invalidCode": "Invalid country code format (e.g., +1, +91, +44)",
-    "invalidFormat": "Invalid phone format. Must be a valid number (e.g., +1 123456789)",
-  });
-
-const phoneValidator = Joi.string()
-  .custom((value, helpers) => {
-    const phonePattern = /^\d{6,14}$/;
-    if (!phonePattern.test(value)) {
-      return helpers.error("invalidFormat");
-    }
-
-    return value;
-  })
-  .messages({
-    "invalidFormat": "Invalid phone format. Must be a valid number (e.g., 123456789)",
-  });
 
 export const login = {
   body: {
@@ -112,13 +66,13 @@ export const create = {
     name: Joi.string().required(),
     email: Joi.string().required(),
     role: Joi.string()
-      .valid(...Object.values(Constants.roles.adminRole)) 
+      .valid(...Object.values(Constants.roles.adminRole))
       .required()
       .messages({
         'any.only': `Role must be one of: ${Object.values(Constants.roles.adminRole).join(', ')}.`,
       }),
     type: Joi.string()
-      .valid(...Object.values(Constants.roles.userRoles)) 
+      .valid(...Object.values(Constants.roles.userRoles))
       .required()
       .messages({
         'any.only': `Type must be one of: ${Object.values(Constants.roles.userRoles).join(', ')}.`,
@@ -135,24 +89,24 @@ export const sendOTP = {
 export const verifyOTP = {
   body: {
     username: Joi.string()
-    .trim()
-    .required()
-    .custom((value, helpers) => {
-      // Check if the input is an email
-      if (value.includes("@")) {
-        const { error } = emailValidator.validate(value);
-        if (error) return helpers.error("email");
+      .trim()
+      .required()
+      .custom((value, helpers) => {
+        // Check if the input is an email
+        if (value.includes("@")) {
+          const { error } = emailValidator.validate(value);
+          if (error) return helpers.error("email");
+          return value;
+        }
+        // Validate phone number (with country code)
+        const { error: phoneError } = phoneValidator.validate(value);
+        if (phoneError) return helpers.message(phoneError.details[0].message);
         return value;
-      }
-      // Validate phone number (with country code)
-      const { error: phoneError } = phoneValidator.validate(value);
-      if (phoneError) return helpers.message(phoneError.details[0].message);
-      return value;
-    })
-    .messages({
-      "any.required": "Username field is required",
-      "email": "Invalid email address",
-    }),
+      })
+      .messages({
+        "any.required": "Username field is required",
+        "email": "Invalid email address",
+      }),
     otp: Joi.string().required().length(6).messages({
       "string.length": "OTP must be 6 characters long",
     }),

@@ -3,6 +3,9 @@ import Constants from '../config/constants.js';
 import DateUtils from '../utils/DateUtils.js';
 import { mObj, mongoOne } from '../lib/mongoose.utils.js';
 import { logg } from '../utils/logger.js';
+import httpStatus from 'http-status';
+import AuthenticateDBO from './AuthenticateDBO.js';
+import FileUploadUtils from '../utils/FileUpload.utils.js';
 
 class UserDBO {
     constructor() {
@@ -23,7 +26,7 @@ class UserDBO {
         session = null,
         paginate = false,
         page = 1,
-        limit = 10,
+        limit = 20,
         sortBy = "createdAt",
         sortOrder = -1,
     } = {}) {
@@ -103,7 +106,6 @@ class UserDBO {
                 { $limit: limit }, // Pagination - Limit items
                 {
                     $project: {
-                        id: '$_id',
                         firstName: 1,
                         lastName: 1,
                         fullName: 1,
@@ -112,13 +114,13 @@ class UserDBO {
                         profilePicture: {
                             $concat: [
                                 Constants.path.public_url,
-                                { $ifNull: ['$profilePicture', Constants.path.DEFAULT_USER_IMAGE] },
+                                { $ifNull: ['$image', Constants.path.DEFAULT_USER_IMAGE] },
                             ],
                         },
                         age: 1,
                         ageGroup: 1,
                         gender: 1,
-
+                        fcmToken: 1,
                         // Address Object
                         address: {
                             street: '$addressObj.street',
@@ -220,6 +222,42 @@ class UserDBO {
         //   return null;
         // }
     };
+
+    getList = async ({ query, session = null }) => {
+        return await this.fetchUsers({ query: [], session, paginate: true });
+
+    }
+
+    update = async (data, { session, sendMail = false, sendOtp = false }) => {
+        const {
+            id,
+            image,
+            name,
+            email,
+            contact,
+        } = data;
+        const user = await UserModel.findById(mObj(id)).session(session);
+        if (!user) throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+        if (image) {
+            if (user.image && user.image !== Constants.path.DEFAULT_USER_IMAGE) {
+                FileUploadUtils.deleteFiles([user.image]);
+            }
+            user.image = image;
+        }
+        if (name) user.name = name;
+        if (email) {
+            user.email = email;
+            // if (sendMail) AuthenticateDBO.sendMail(email, user.type === Constants.roles.userRoles.ADMIN, { session });
+        }
+        if (contact) {
+            const { contact, country_code } = getCountryContact(contact);
+            user.contact = contact;
+            user.country_code = country_code;
+            if (sendOtp) AuthenticateDBO.sendOtp(contact, user.type === Constants.roles.userRoles.ADMIN, { session });
+        }
+        await user.save({ session, new: true });
+        return await this.getById(mObj(id), { session });
+    }
 }
 
 export default new UserDBO();
