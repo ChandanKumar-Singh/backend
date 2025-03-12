@@ -47,8 +47,12 @@ const SchemaValidator = (schema) => async (req, res, next) => {
     }
 
     Object.assign(req, value);
+    req.body = {
+      ...req.body,
+      ...req.params,
+      ...req.query,
+    }
     return next();
-    
   } catch (err) {
     return next(err);
   }

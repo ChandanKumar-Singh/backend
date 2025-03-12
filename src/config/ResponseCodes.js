@@ -21,6 +21,7 @@ export default {
     UNAUTHORIZED_ACCESS: 'Unauthorized Access',
     FORBIDDEN: 'Forbidden action.',
     DATABASE_CONNECTION_FAILED: 'Database connection failed.',
+    NOT_FOUND: 'Not found.',
   },
 
   // Authentication Errors
