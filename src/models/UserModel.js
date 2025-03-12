@@ -22,11 +22,11 @@ const UserSchema = new Schema(
     image: { type: String, default: Constants.DEFAULT_USER_IMAGE },
     type: {
       type: String,
-      enum: Object.keys(Constants.roles.userRoles),
+      enum: Object.values(Constants.roles.userRoles),
     },
     role: {
       type: String,
-      enum: Object.keys(Constants.roles.adminRole),
+      enum: Object.values(Constants.roles.adminRole),
       default: Constants.roles.adminRole.GENERAL,
     },
     password: { type: String },
@@ -47,6 +47,8 @@ const UserSchema = new Schema(
     created_by: { type: Schema.Types.ObjectId },
     last_login: { type: Date },
     otp: { type: String },
+    deviceId: { type: mongoose.Schema.Types.ObjectId, ref: "devices" },
+    fcmToken: { type: String , default: ''},
     is_profile_completed: { type: Boolean, default: false },
   },
   {

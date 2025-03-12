@@ -1,13 +1,20 @@
 import multer from "multer";
 import path from "path";
+import fs from "fs";
 import Constants from "../config/constants.js";
 import { removeWildCards } from "./UrlsUtils.js";
+import { logg } from "./logger.js";
 
 class FileUpload {
   uploadFiles = async (req, res, fields, folderName) => {
+    const uploadFolder = path.join(path.resolve(Constants.path.root), Constants.path.publicKey, folderName);
+
+    if (!fs.existsSync(uploadFolder)) {
+      fs.mkdirSync(uploadFolder, { recursive: true });
+    }
     const Storage = multer.diskStorage({
       destination: function (req, file, callback) {
-        callback(null, path.resolve(Constants.path.root) + "/public/" + folderName);
+        callback(null, uploadFolder);
       },
       filename: function (req, file, callback) {
         callback(null, Date.now() + "_" + removeWildCards(file.originalname));
@@ -18,7 +25,6 @@ class FileUpload {
     const allowedExtensions = [".jpg", ".jpeg", ".png", ".gif"];
 
     const fileFilter = (allowed) => (req, file, callback) => {
-      // Fallback to allowedExtensions if 'allowed' is undefined or null
       const ext = path.extname(file.originalname).toLowerCase();
       if (allowed.includes(ext)) {
         callback(null, true); // Accept file
@@ -27,7 +33,7 @@ class FileUpload {
           "Invalid file type! Only .jpg, .jpeg, .png, and .gif files are allowed."
         );
         tempErr.status = 400;
-        callback(tempErr, false); 
+        callback(tempErr, false);
       }
     };
 
@@ -52,6 +58,44 @@ class FileUpload {
 
     return await uploadFilePromise;
   };
+
+  /**
+   * Deletes all uploaded files from request if an error occurs.
+   * @param {Object} files - The files object from multer.
+   */
+  deleteUploadedFiles = (files) => {
+    if (!files || Object.keys(files).length === 0) return;
+    try {
+      Object.values(files).forEach(fileArray => {
+        fileArray.forEach(file => {
+          if (file.path && fs.existsSync(file.path)) {
+            fs.unlinkSync(file.path);
+            console.log(`Deleted: ${file.path}`);
+          }
+        });
+      });
+    } catch (error) {
+      console.error("Error deleting files:", error);
+    }
+  };
+
+
+  deleteFiles = async (files) => {
+    if (!files || files.length === 0) return;
+    logg("Deleting files: ", files);
+    try {
+      files.forEach(file => {
+        const filePath = path.join(path.resolve(Constants.path.root), Constants.path.publicKey, file);
+        if (path && fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
+      }
+      );
+    }
+    catch (error) {
+      console.error("Error deleting files:", error);
+    }
+  }
 }
 
 export default new FileUpload();

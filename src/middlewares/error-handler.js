@@ -4,6 +4,7 @@ import { logg, logger } from '../utils/logger.js';
 import ApiError from './ApiError.js';
 import resConv from '../utils/resConv.js';
 import httpStatus from 'http-status';
+import FileUploadUtils from '../utils/FileUpload.utils.js';
 
 /**
  * Centralized error handler middleware.
@@ -11,6 +12,7 @@ import httpStatus from 'http-status';
  * Handles both operational errors (known errors) and programming errors.
  */
 export default function errorHandler(err, req, res, next) {
+  FileUploadUtils.deleteUploadedFiles(req.files ?? []);
   if (!err) {
     handleUnknownError(res);
   } else if (err instanceof ApiError) {
@@ -42,13 +44,9 @@ function handleUnknownError(res) {
  */
 function handleApiError(err, res) {
   loggError(err, 'Non-operational error occurred:');
-  return res.status(err.statusCode || httpStatus.INTERNAL_SERVER_ERROR).json(
-    resConv(null, err.message || 'An error occurred', 0, {
-      errorDetails: err.error || null,
-      responseCode: err.responseCode || ResponseCodes.GENERAL_ERROR,
-      stackTrace: Constants.IS_PRODUCTION ? null : err.stack, // Hide stack in production
-    })
-  );
+  return res.status(err.statusCode || httpStatus.BAD_REQUEST).json(
+    resConv(err.error || err.errors, err.message || 'An error occurred', 0, err.stack)
+  ); 
 }
 
 
@@ -59,11 +57,10 @@ function handleApiError(err, res) {
  */
 function handleValidationError(err, res) {
   loggError(err, 'Validation error occurred');
-
   return res.status(httpStatus.BAD_REQUEST).json(
-    resConv(err.errors, 'Validation failed.', 0, {
-      stackTrace: Constants.IS_PRODUCTION ? null : err.stack, // Hide stack in production
-    })
+    resConv(err.error, 'Validation failed.', 0,
+      Constants.envs.production ? null : err.stack,
+    )
   );
 }
 
@@ -137,7 +134,7 @@ function loggError(err, reason) {
       // responseCode: err.responseCode,
       stack: err.stack,
     });
-  }else{
+  } else {
     console.error(err)
   }
 }

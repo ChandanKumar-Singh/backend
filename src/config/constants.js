@@ -69,10 +69,28 @@ const Constants = {
     path: {
         root: path.normalize(__dirname + '/..'),
         root_public: path.normalize(__dirname + '/..') + '/public/',
+        publicKey: 'public',
         public_url: process.env.URL + '/public/',
         DEFAULT_USER_IMAGE: 'default_user_image.jpg',
         DEFAULT_USER_IMAGE_PATH: 'user_images/'
-    }
+    },
+
+    Device : {
+        os : {
+            WINDOWS : 'Windows',
+            MACOS : 'macOS',
+            LINUX : 'Linux',
+            IOS : 'iOS',
+            ANDROID : 'Android',
+        },
+        deviceType : {
+            DESKTOP : 'desktop',
+            MOBILE : 'mobile',
+            TABLET : 'tablet',
+            UNKNOWN : 'unknown',
+        }
+    },
+
 }
 
 export default Constants;

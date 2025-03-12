@@ -11,5 +11,4 @@ router.post('/create', SchemaValidator(AuthSchema.create), AdminController.creat
 router.post('/login', SchemaValidator(AuthSchema.login), AdminController.login);
 router.post('/verifyOtp', SchemaValidator(AuthSchema.verifyOTP), AdminController.verifyOTP);
 
-
 export default router;
