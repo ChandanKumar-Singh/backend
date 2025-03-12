@@ -41,7 +41,7 @@ const Constants = {
             GENERAL: 'GENERAL',
             CHAPTER_ADMIN: 'CHAPTER_ADMIN',
         },
-        role:{
+        role: {
             OWNER: 'OWNER',
             SHOWROOM_MANAGER: 'SHOWROOM_MANAGER',
             OTHERS: 'OTHERS',
@@ -61,6 +61,12 @@ const Constants = {
         SUSPENDED: 'SUSPENDED',
         DELETED: 'DELETED',
     },
+
+    pageStatus: {
+        DRAFT: 'draft',
+        PUBLISHED: 'published',
+        INACTIVE: 'inactive',
+    },
     TIME_ZONE: process.env.TIME_ZONE || 5.5,
     TIME_ZONE_NAME: process.env.TIME_ZONE_NAME || 'UTC',
     DATE_TIME_FORMAT: '%Y-%m-%d | %H:%M',
@@ -75,21 +81,22 @@ const Constants = {
         DEFAULT_USER_IMAGE_PATH: 'user_images/'
     },
 
-    Device : {
-        os : {
-            WINDOWS : 'Windows',
-            MACOS : 'macOS',
-            LINUX : 'Linux',
-            IOS : 'iOS',
-            ANDROID : 'Android',
+    Device: {
+        os: {
+            WINDOWS: 'Windows',
+            MACOS: 'macOS',
+            LINUX: 'Linux',
+            IOS: 'iOS',
+            ANDROID: 'Android',
         },
-        deviceType : {
-            DESKTOP : 'desktop',
-            MOBILE : 'mobile',
-            TABLET : 'tablet',
-            UNKNOWN : 'unknown',
+        deviceType: {
+            DESKTOP: 'desktop',
+            MOBILE: 'mobile',
+            TABLET: 'tablet',
+            UNKNOWN: 'unknown',
         }
     },
+
 
 }
 
