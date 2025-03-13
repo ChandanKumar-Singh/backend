@@ -83,7 +83,7 @@ class AdminController {
 
     verifyOTP = catchAsync(async (req, res) => withTransaction(async (session) => {
         const { username, otp } = req.body;
-        let response = await AuthenticateDBO.verifyOTP(username, otp, { session: session });
+        let response = await AuthenticateDBO.verifyOTP(username, otp, { session: session, isAdmin: true });
         res.status(httpStatus.OK).send(resConv(response));
     }));
 

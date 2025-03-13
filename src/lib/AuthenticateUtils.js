@@ -8,6 +8,8 @@ class AuthenticateUtils {
       }
       return text;
     }
+
+    
 }
 
 export default new AuthenticateUtils();

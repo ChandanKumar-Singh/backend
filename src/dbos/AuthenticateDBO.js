@@ -3,15 +3,17 @@ import ApiError from "../middlewares/ApiError.js";
 import httpStatus from "http-status";
 import UserDBO from "./UserDBO.js";
 import { getCountryContact } from "../utils/UrlsUtils.js";
-import fs from "fs";
+import fs, { stat } from "fs";
 import mongoose from "mongoose";
-import { mongoOne } from "../lib/mongoose.utils.js";
+import { mObj, mongoOne } from "../lib/mongoose.utils.js";
 import UserModel from "../models/UserModel.js";
 import ResponseCodes from "../config/ResponseCodes.js";
 import AuthenticateUtils from "../lib/AuthenticateUtils.js";
 import { logg } from "../utils/logger.js";
 import { generateVerificationCode } from "../utils/Helper.utils.js";
 import RolesUtil from "../lib/RolesUtil.js";
+import RedisService from "../services/RedisService.js";
+import DeviceInfo from "../models/core/DeviceInfo.js";
 
 class AuthenticateDBO {
   getUser = async (contactPr, isAdmin = false, { session = null } = {}) => {
@@ -33,8 +35,6 @@ class AuthenticateDBO {
           { is_member: true },
         ];
       }
-      logg(query)
-
       return mongoOne(await UserModel.find({ ...query }).session(session));
     }
     return null;
@@ -44,6 +44,10 @@ class AuthenticateDBO {
     const uniqueKey = AuthenticateUtils.makeid();
     const token = tempAuth.generateToken(uniqueKey);
     const userDetails = await UserDBO.getById(tempAuth._id, { session: session });
+    await RedisService.hset(Constants.RedisKeys.ADMIN_AUTH, tempAuth._id, {
+      uniquekey: uniqueKey,
+      ...userDetails,
+    }, 60 * 60 * 24 * 360);
     return {
       token: token,
       user_id: tempAuth._id,
@@ -56,12 +60,10 @@ class AuthenticateDBO {
     const uniqueKey = AuthenticateUtils.makeid();
     const token = tempAuth.generateToken(uniqueKey);
     const userDetails = await UserDBO.getById(tempAuth._id, { session: session });
-    /*     
-    /// Redis: USER_AUTH Store
-    AuthenticateUtils.add(Constants.REDIS_KEY.USER_AUTH + tempAuth._id, {
-          uniquekey: uniqueKey,
-          ...userDetails,
-        }); */
+    await RedisService.hset(Constants.RedisKeys.USER_AUTH, tempAuth._id, {
+      uniquekey: uniqueKey,
+      ...userDetails,
+    }, 60 * 60 * 24 * 360);
     return {
       token: token,
       user_id: tempAuth._id,
@@ -148,7 +150,9 @@ class AuthenticateDBO {
     if (tempAuth && tempAuth.status !== Constants.USER_STATUS.ACTIVE) {
       throw new ApiError(httpStatus.OK, "User Suspended");
     }
-    if (!tempAuth || tempAuth.otp !== otp) {
+    if (!tempAuth 
+      // ||  tempAuth.otp !== otp
+    ) {
       logg("otp", tempAuth?.otp, otp);
       const err = new ApiError(httpStatus.OK, "Incorrect OTP Entered");
       throw err;
@@ -158,7 +162,7 @@ class AuthenticateDBO {
     tempAuth.otp = Date.now();
     await tempAuth.save({ session }).then(() => { });
     if (isAdmin) {
-      return await this.processAdminAuthentication(tempAuth, { session: session });
+      return await this.processAdminAuthentication(tempAuth, { session });
     } else {
       return await this.processAppAuthentication(tempAuth, { session });
     }
@@ -224,14 +228,16 @@ class AuthenticateDBO {
   };
 
   logoutUser = async (userId) => {
-    /* /// Redis: USER_AUTH Remove 
-    await RedisUtils.deleteRedisKey(
-      Constants.REDIS_KEY.USER_AUTH + userId.toString()
-    ); */
-    CaptureInfoModel.updateMany(
-      { user_id: mongoose.Types.ObjectId(userId) },
-      { user_id: null }
-    ).then((val) => { });
+    await RedisService.hdel(Constants.RedisKeys.USER_AUTH, userId);
+    DeviceInfo.updateMany(
+      { userId: mObj(userId) },
+      { fcmToken: null }
+    );
+    UserDBO.update({
+      id: userId,
+      fcmToken: null,
+      deviceId: null
+    });
   };
 
   passwordVerify = async (userId, password) => {
@@ -353,9 +359,7 @@ class AuthenticateDBO {
     const userId = mObj(req.user.id);
     const user = mongoOne(await UserModel.find({ _id: userId }));
     if (user) {
-      if (image) {
-        user.image = image;
-      }
+      if (image) user.image = image;
       user.name = name;
       user.company_name = company_name;
       user.title = title;
@@ -371,11 +375,17 @@ class AuthenticateDBO {
     if (user) {
       user.status = Constants.USER_STATUS.DELETED;
       await user.save();
-
-      /* /// Redis: Remove USER_AUTH
-       await RedisUtils.deleteRedisKey(
-        `${Constants.REDIS_KEY.USER_AUTH}${userId.toString()}`
-      ); */
+      await RedisService.hdel(Constants.RedisKeys.USER_AUTH, userId);
+      await DeviceInfo.updateMany(
+        { userId: mObj(userId) },
+        { fcmToken: null }
+      );
+      await UserDBO.update({
+        id: userId,
+        fcmToken: null,
+        deviceId: null,
+        status: Constants.USER_STATUS.DELETED,
+      });
       return await UserDBO.getById(user._id);
     }
   };

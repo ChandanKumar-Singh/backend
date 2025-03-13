@@ -46,7 +46,7 @@ function handleApiError(err, res) {
   loggError(err, 'Non-operational error occurred:');
   return res.status(err.statusCode || httpStatus.BAD_REQUEST).json(
     resConv(err.error || err.errors, err.message || 'An error occurred', 0, err.stack)
-  ); 
+  );
 }
 
 

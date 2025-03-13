@@ -97,6 +97,25 @@ const Constants = {
         }
     },
 
+    Redis: {
+        Enabled: process.env.REDIS_ENABLED || false,
+        Host: process.env.REDIS_HOST || 'localhost',
+        Port: process.env.REDIS_PORT || 6379,
+        Password: process.env.REDIS_PASSWORD || '',
+        KEY: process.env.REDIS_KEY || 'TRIDGE_'
+    },
+
+    RedisKeys: {
+        ADMIN_AUTH: 'ADMIN_AUTH',
+        USER_AUTH: 'USER_AUTH',
+        USER_DETAILS: 'USER_DETAILS',
+    },
+
+    Events: {
+        Enabled: process.env.EVENT_ENABLED || false,
+        USER_UPDATE: 'USER_UPDATE',
+    },
+
 
 }
 

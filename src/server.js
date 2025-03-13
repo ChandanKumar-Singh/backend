@@ -10,6 +10,8 @@ import { assignQueryAndParamsToBody } from './middlewares/index.js';
 import routes from './routes/index.js';
 import errorHandler from './middlewares/error-handler.js';
 import Constants from './config/constants.js';
+import Redis from './services/RedisService.js';
+import RedisService from './services/RedisService.js';
 const app = express();
 
 app.use(cors());
@@ -31,7 +33,7 @@ const PORT = process.env.PORT || 3000;
 connectDB();
 
 // app.use(assignQueryAndParamsToBody);
-app.use('/',  routes);
+app.use('/', routes);
 app.get('/', (req, res) => {
     res.send('Welcome to a hybrid Node.js project with both require & import!');
 });
@@ -39,5 +41,6 @@ app.get('/', (req, res) => {
 app.use(errorHandler);
 
 app.listen(PORT, () => {
+    RedisService.start();
     console.log(`Server is running on port ${PORT}`);
 });

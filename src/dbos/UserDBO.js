@@ -2,13 +2,20 @@ import UserModel from '../models/UserModel.js'; // Adjust as needed
 import Constants from '../config/constants.js';
 import DateUtils from '../utils/DateUtils.js';
 import { mObj, mongoOne } from '../lib/mongoose.utils.js';
-import { logg } from '../utils/logger.js';
+import { infoLog, logg } from '../utils/logger.js';
 import httpStatus from 'http-status';
 import AuthenticateDBO from './AuthenticateDBO.js';
 import FileUploadUtils from '../utils/FileUpload.utils.js';
+import EventService from '../services/EventService.js';
+import RedisService from '../services/RedisService.js';
+import { name } from 'ejs';
 
 class UserDBO {
     constructor() {
+        EventService.on(Constants.Events.USER_UPDATE, ({ userId }) => {
+            infoLog('UserDBO Event:', 'USER_UPDATE', userId);
+            userId && this.purgeCache(userId);
+        });
     }
 
     /**
@@ -36,14 +43,6 @@ class UserDBO {
             const pipeline = [
                 ...query,
                 ...midQuery,
-                {
-                    $lookup: {
-                        from: 'roles',
-                        localField: 'role_ids',
-                        foreignField: '_id',
-                        as: 'roles',
-                    },
-                },
                 {
                     $lookup: {
                         from: 'addresses',
@@ -92,13 +91,6 @@ class UserDBO {
                 }
             ];
 
-            // If only count is needed, return total count
-            /* if (count) {
-                pipeline.push({ $count: "totalCount" });
-                const result = await UserModel.aggregate(pipeline).session(session);
-                return result.length > 0 ? result[0].totalCount : 0;
-            } */
-
             // Add sorting, pagination, and projection
             pipeline.push(
                 { $sort: { [sortBy]: sortOrder } }, // Sorting
@@ -106,11 +98,14 @@ class UserDBO {
                 { $limit: limit }, // Pagination - Limit items
                 {
                     $project: {
+                        name: 1,
                         firstName: 1,
                         lastName: 1,
                         fullName: 1,
                         email: 1,
                         contact: 1,
+                        role: 1,
+                        type: 1,
                         profilePicture: {
                             $concat: [
                                 Constants.path.public_url,
@@ -121,35 +116,18 @@ class UserDBO {
                         ageGroup: 1,
                         gender: 1,
                         fcmToken: 1,
-                        // Address Object
+                        deviceId: 1,
                         address: {
                             street: '$addressObj.street',
                             city: '$addressObj.city',
                             state: '$addressObj.state',
                             zip: '$addressObj.zip',
                         },
-
-                        // Company Object
                         company: {
                             name: '$companyObj.name',
                             code: '$companyObj.code',
                             industry: '$companyObj.industry',
                         },
-
-                        // Role Array
-                        roles: {
-                            $map: {
-                                input: '$roles',
-                                as: 'role',
-                                in: {
-                                    id: '$$role._id',
-                                    name: '$$role.name',
-                                    permissions: '$$role.permissions',
-                                },
-                            },
-                        },
-
-                        // Preferences Array
                         preferences: {
                             $map: {
                                 input: '$preferences',
@@ -160,7 +138,6 @@ class UserDBO {
                                 },
                             },
                         },
-
                         status: 1,
                         isActive: 1,
                         createdAt: 1,
@@ -168,16 +145,14 @@ class UserDBO {
                         approvedOnText: 1,
                         createdAtText: 1,
                         updatedAtText: 1,
-
-                        ...project, // Extend projection dynamically
+                        ...project,
                     },
                 }
             );
 
             // Run aggregation
             const users = await UserModel.aggregate(pipeline).session(session);
-            if (!paginate)
-                return users;
+            if (!paginate) return users;
 
 
             // Fetch total count separately for pagination metadata
@@ -203,29 +178,26 @@ class UserDBO {
     }
 
     getById = async (id, { session = null, shouldForce = false } = {}) => {
-        // const redisKey = Constants.REDIS_KEY.USER_DETAIL;
-        // const redisData = await RedisUtils.hmGetRedis(redisKey, id);
-        // if (redisData && Constants.IS_REDIS_STORE && !shouldForce) {
-        //   return JSON.parse(redisData);
-        // } else {
-        // throw new ApiError(403, 'Method not implemented.');
-
-        const obj = mongoOne(
-            await this.fetchUsers({ query: [{ $match: { _id: mObj(id) } }], session })
-        );
-        //   if (obj) {
-        //     RedisUtils.setHMSetRedis(redisKey, {
-        //       [obj.id.toString()]: JSON.stringify(obj),
-        //     });
-        return obj;
-        //   }
-        //   return null;
-        // }
+        const redisKey = Constants.RedisKeys.USER_DETAILS;
+        const redisData = await RedisService.hget(redisKey, id);
+        if (redisData && !shouldForce) {
+            infoLog('UserDBO:', 'Cache Hit', id);
+            return redisData;
+        } else {
+            const obj = mongoOne(
+                await this.fetchUsers({ query: [{ $match: { _id: mObj(id) } }], session })
+            );
+            if (obj) {
+                RedisService.hset(redisKey, id, JSON.stringify(obj));
+                return obj;
+            }
+            return null;
+        }
     };
 
     getList = async ({ query, session = null }) => {
+        // EventService.emit(Constants.Events.USER_UPDATE, { userId: '67d082c86ef79d29711a48ac' });
         return await this.fetchUsers({ query: [], session, paginate: true });
-
     }
 
     update = async (data, { session, sendMail = false, sendOtp = false }) => {
@@ -235,6 +207,8 @@ class UserDBO {
             name,
             email,
             contact,
+            fcmToken,
+            deviceId,
         } = data;
         const user = await UserModel.findById(mObj(id)).session(session);
         if (!user) throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
@@ -255,9 +229,25 @@ class UserDBO {
             user.country_code = country_code;
             if (sendOtp) AuthenticateDBO.sendOtp(contact, user.type === Constants.roles.userRoles.ADMIN, { session });
         }
+        if (fcmToken) user.fcmToken = fcmToken;
+        if (deviceId) user.deviceId = deviceId;
+        if (data.status) user.status = data.status;
         await user.save({ session, new: true });
+        EventService.emit(Constants.Events.USER_UPDATE, { userId: id });
         return await this.getById(mObj(id), { session });
     }
+
+    purgeCache = async (userId) => {
+        if (!userId) return;
+        /* const usersData = await this.getById(userId);
+        if (usersData) {
+         /// user data basis dispatches
+        } */
+        await RedisService.hdel(
+            Constants.RedisKeys.USER_DETAILS,
+            userId.toString()
+        );
+    };
 }
 
 export default new UserDBO();
