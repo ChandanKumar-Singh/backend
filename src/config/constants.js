@@ -13,9 +13,9 @@ const Constants = {
         }
     },
     envs: {
-        test: process.env.NODE_ENV === 'test' || 'local',
+        test: process.env.NODE_ENV === 'test',
         local: process.env.NODE_ENV === 'local',
-        development: process.env.NODE_ENV === 'development' || 'local',
+        development: process.env.NODE_ENV === 'development',
         production: process.env.NODE_ENV === 'production',
     },
     routes: {
@@ -98,7 +98,7 @@ const Constants = {
     },
 
     Redis: {
-        Enabled: process.env.REDIS_ENABLED || false,
+        Enabled: process.env.REDIS_ENABLED == 'true' || false,
         Host: process.env.REDIS_HOST || 'localhost',
         Port: process.env.REDIS_PORT || 6379,
         Password: process.env.REDIS_PASSWORD || '',
@@ -112,7 +112,7 @@ const Constants = {
     },
 
     Events: {
-        Enabled: process.env.EVENT_ENABLED || false,
+        Enabled: process.env.EVENT_ENABLED == 'true' || false,
         USER_UPDATE: 'USER_UPDATE',
     },
 

@@ -2,8 +2,10 @@ import { createClient } from 'redis';
 import Constants from '../config/constants.js';
 import { logg, warnLog } from '../utils/logger.js';
 
+
 class RedisService {
     constructor() {
+        logg(Constants)
         this.REDIS_KEY = Constants.Redis.KEY || '';
         this.ENABLED = Constants.Redis.Enabled || false;
         if (this.ENABLED) {
