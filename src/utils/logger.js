@@ -49,4 +49,23 @@ const logg = (...d) => {
     console.warn(...d)
 }
 
-export { logg , logger}
+import chalk from 'chalk'; 
+
+
+const print = {
+    info: (...d) => console.log(chalk.blue(`${d[0]}`), ...d.slice(1)),
+    warn: (...d) => console.warn(chalk.yellow(`${d[0]}`), ...d.slice(1)),
+    error: (...d) => console.error(chalk.red(`${d[0]}`), ...d.slice(1)),
+    green: (...d) => console.log(chalk.green(d[0]), ...d.slice(1)),
+    yellow: (...d) => console.log(chalk.yellow(d[0]), ...d.slice(1)),
+    red: (...d) => console.log(chalk.red(d[0]), ...d.slice(1)),
+};
+const infoLog = (...d) => print.info(...d);
+const warnLog = (...d) => print.warn(...d);
+const errorLog = (...d) => print.error(...d);
+const greenLog = (...d) => print.green(...d);
+const yellowLog = (...d) => print.yellow(...d);
+const redLog = (...d) => print.red(...d);
+
+
+export { logg, logger, infoLog, warnLog, errorLog, greenLog, yellowLog, redLog };

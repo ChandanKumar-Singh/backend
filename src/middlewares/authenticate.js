@@ -6,24 +6,54 @@ import jwt from "jsonwebtoken";
 import Constants from "../config/constants.js";
 import ResponseCodes from "../config/ResponseCodes.js";
 import resConv from "../utils/resConv.js";
-import { logg } from "../utils/logger.js";
-import httpStatus from 'http-status'
+import { logg, warnLog } from "../utils/logger.js";
+import httpStatus from "http-status";
+import RedisService from "../services/RedisService.js";
+import ApiError from "./ApiError.js";
 
 const { sessionSecret } = Constants.security;
 
 /**
  * Extracts and verifies JWT token from the request headers.
  * @param {string} token - The JWT token from authorization header.
+ * @param {object} req - The Express request object.
+ * @param {string} role - The user role (ADMIN or USER).
  * @returns {Promise<object>} - Resolves with decoded user data or rejects with an error.
  */
-const verifyToken = (token) => {
+const verifyToken = (token, req, role) => {
   return new Promise((resolve, reject) => {
-    jwt.verify(token, sessionSecret, (err, decoded) => {
+    jwt.verify(token, sessionSecret, async (err, decoded) => {
       if (err || !decoded) {
-        logg("JWT Verification Failed:", err?.message || "Invalid Token");
-        return reject({ message: ResponseCodes.ERROR.INVALID_TOKEN, error: err });
+        logg("❌ JWT Verification Failed:", err?.message || "Invalid Token");
+        return reject(new ApiError(httpStatus.UNAUTHORIZED, ResponseCodes.ERROR.INVALID_TOKEN, true, null, 0, err));
       }
-      resolve(decoded);
+
+      try {
+        const redisKey =
+          role === Constants.roles.userRoles.ADMIN
+            ? Constants.RedisKeys.ADMIN_AUTH
+            : Constants.RedisKeys.USER_AUTH;
+
+        const data = await RedisService.hget(redisKey, decoded.id);
+        const decodedData = data;
+
+        warnLog("Decoded JWT:", decoded, role);
+        warnLog("Decoded Redis Data:", decodedData);
+
+        if (!decodedData || decodedData.uniquekey !== decoded.uniquekey) {
+          return reject(new ApiError(httpStatus.UNAUTHORIZED, ResponseCodes.ERROR.SESSION_EXPIRED, true, null, 0, err));
+        }
+
+        // Attach user data to request
+        req.user = decodedData;
+        req.sender_id = decodedData._id;
+        req.sender = role;
+        req.currency = req.currency || Constants.BASE_CURRENCY;
+        resolve(decoded);
+      } catch (error) {
+        logg("❌ Authentication Redis Error:", error);
+        reject(new ApiError(httpStatus.INTERNAL_SERVER_ERROR, ResponseCodes.ERROR.SERVER_ERROR, true, null, 0, error));
+      }
     });
   });
 };
@@ -35,20 +65,24 @@ const verifyToken = (token) => {
 const authenticate = (role) => async (req, res, next) => {
   try {
     const { authorization } = req.headers;
-    logg("Authorization Header:", authorization);
+    logg("🔐 Authorization Header:", authorization);
 
     if (!authorization || !authorization.startsWith("Bearer ")) {
-      return res.status(httpStatus.UNAUTHORIZED).json(resConv(null, ResponseCodes.ERROR.UNAUTHORIZED_ACCESS, 0, new Error().stack));
+      return res
+        .status(httpStatus.UNAUTHORIZED)
+        .json(resConv(null, ResponseCodes.ERROR.UNAUTHORIZED_ACCESS, 0, new Error().stack));
     }
 
     const token = authorization.split(" ")[1];
-    req.user = await verifyToken(token);
-    req.sender = Constants.roles.userRoles[role] || "UNKNOWN_ROLE";
+    await verifyToken(token, req, role);
 
-    logg(`User Authenticated: Role=${req.sender}, ID=${req.user?.id || "N/A"}`);
+    req.sender = Constants.roles.userRoles[role] || "UNKNOWN_ROLE";
+    logg(`✅ User Authenticated: Role=${req.sender}, ID=${req.user?.id || "N/A"}`);
     next();
   } catch (error) {
-    return res.status(httpStatus.UNAUTHORIZED).json(resConv(error.error, error.message, 0, new Error().stack));
+    return res
+      .status(error.statusCode || httpStatus.INTERNAL_SERVER_ERROR)
+      .json(resConv(error.message, error.message, 0, new Error().stack));
   }
 };
 

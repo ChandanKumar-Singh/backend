@@ -8,8 +8,9 @@ export default {
   // Error Codes
   ERROR: {
     PARAMETERS_MISSING: (param) => `Parameters missing: ${param}`,
-    SERVER_ERROR: 'SERVER_ERROR',
+    SERVER_ERROR: 'Internal server error.',
     INVALID_TOKEN: 'Authentication Failed',
+    SESSION_EXPIRED: 'Session Expired',
     STORE_GEO_FENCE_NOT_FOUND: 'No Store Found In Current Location',
     RESOURCE_NOT_FOUND: (resource) => `Requested resource "${resource}" not found.`,
     UNEXPECTED_ERROR: 'An unexpected error occurred, please try again later.',
