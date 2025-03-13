@@ -212,7 +212,7 @@ class UserDBO {
         if (!user) throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
         if (image) {
             if (user.image && user.image !== Constants.path.DEFAULT_USER_IMAGE) {
-                FileUploadUtils.deleteFiles([user.image]);
+                FileUploadUtils.deleteFiles([user.image], 'User Image Update');
             }
             user.image = image;
         }

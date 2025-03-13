@@ -3,7 +3,7 @@ import path from "path";
 import fs from "fs";
 import Constants from "../config/constants.js";
 import { removeWildCards } from "./UrlsUtils.js";
-import { logg } from "./logger.js";
+import { errorLog, logg } from "./logger.js";
 
 class FileUpload {
   uploadFiles = async (req, res, fields, folderName) => {
@@ -27,10 +27,10 @@ class FileUpload {
     const fileFilter = (allowed) => (req, file, callback) => {
       const ext = path.extname(file.originalname).toLowerCase();
       if (allowed.includes(ext)) {
-        callback(null, true); // Accept file
+        callback(null, true); 
       } else {
         const tempErr = new Error(
-          "Invalid file type! Only .jpg, .jpeg, .png, and .gif files are allowed."
+          `Invalid file type! Only ${allowed.join(", ")} files are allowed.`
         );
         tempErr.status = 400;
         callback(tempErr, false);
@@ -80,9 +80,9 @@ class FileUpload {
   };
 
 
-  deleteFiles = async (files) => {
+  deleteFiles = async (files, reason) => {
     if (!files || files.length === 0) return;
-    logg("Deleting files: ", files);
+    errorLog("Deleting files: ", files, reason);
     try {
       files.forEach(file => {
         const filePath = path.join(path.resolve(Constants.path.root), Constants.path.publicKey, file);
