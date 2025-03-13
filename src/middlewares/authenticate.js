@@ -37,11 +37,11 @@ const verifyToken = (token, req, role) => {
         req.sender_id = decoded.id;
 
         if (Constants.Redis.Enabled === true) {
-          logg("🔍 Fetching Redis Data:", Constants.Redis.Enabled);
+          // logg("🔍 Fetching Redis Data:", Constants.Redis.Enabled);
           const data = await RedisService.hget(redisKey, decoded.id);
           const decodedData = data;
-          warnLog("Decoded JWT:", decoded, role);
-          warnLog("Decoded Redis Data:", decodedData);
+          // warnLog("Decoded JWT:", decoded, role);
+          // warnLog("Decoded Redis Data:", decodedData);
           if (!decodedData || decodedData.uniquekey !== decoded.uniquekey) {
             return reject(new ApiError(httpStatus.UNAUTHORIZED, ResponseCodes.ERROR.SESSION_EXPIRED, true, null, 0, err));
           }

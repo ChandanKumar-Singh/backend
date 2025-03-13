@@ -181,14 +181,13 @@ class UserDBO {
         const redisKey = Constants.RedisKeys.USER_DETAILS;
         const redisData = await RedisService.hget(redisKey, id);
         if (redisData && !shouldForce) {
-            infoLog('UserDBO:', 'Cache Hit', id);
             return redisData;
         } else {
             const obj = mongoOne(
                 await this.fetchUsers({ query: [{ $match: { _id: mObj(id) } }], session })
             );
             if (obj) {
-                RedisService.hset(redisKey, id, JSON.stringify(obj));
+                RedisService.hset(redisKey, id, obj);
                 return obj;
             }
             return null;
@@ -196,7 +195,6 @@ class UserDBO {
     };
 
     getList = async ({ query, session = null }) => {
-        // EventService.emit(Constants.Events.USER_UPDATE, { userId: '67d082c86ef79d29711a48ac' });
         return await this.fetchUsers({ query: [], session, paginate: true });
     }
 

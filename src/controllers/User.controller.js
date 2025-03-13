@@ -43,7 +43,7 @@ class UserController {
     });
 
     update = catchAsync(async (req, res) => withTransaction(async (session) => {
-        const response = await UserDBO.update(req,{session});
+        const response = await UserDBO.update(req, { session });
         res.status(httpStatus.OK).send(resConv(response));
     }));
 
