@@ -46,7 +46,7 @@ const verifyToken = (token, req, role) => {
 
         // Attach user data to request
         req.user = decodedData;
-        req.sender_id = decodedData._id;
+        req.sender_id = decodedData.id;
         req.sender = role;
         req.currency = req.currency || Constants.BASE_CURRENCY;
         resolve(decoded);

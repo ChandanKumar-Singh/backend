@@ -46,7 +46,9 @@ class AuthenticateDBO {
     const userDetails = await UserDBO.getById(tempAuth._id, { session: session });
     await RedisService.hset(Constants.RedisKeys.ADMIN_AUTH, tempAuth._id, {
       uniquekey: uniqueKey,
-      ...userDetails,
+      role: tempAuth.role,
+      type: tempAuth.type,
+      id: tempAuth._id,
     }, 60 * 60 * 24 * 360);
     return {
       token: token,
@@ -62,7 +64,9 @@ class AuthenticateDBO {
     const userDetails = await UserDBO.getById(tempAuth._id, { session: session });
     await RedisService.hset(Constants.RedisKeys.USER_AUTH, tempAuth._id, {
       uniquekey: uniqueKey,
-      ...userDetails,
+      role: tempAuth.role,
+      type: tempAuth.type,
+      id: tempAuth._id,
     }, 60 * 60 * 24 * 360);
     return {
       token: token,
@@ -150,7 +154,7 @@ class AuthenticateDBO {
     if (tempAuth && tempAuth.status !== Constants.USER_STATUS.ACTIVE) {
       throw new ApiError(httpStatus.OK, "User Suspended");
     }
-    if (!tempAuth 
+    if (!tempAuth
       // ||  tempAuth.otp !== otp
     ) {
       logg("otp", tempAuth?.otp, otp);
