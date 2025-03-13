@@ -1,23 +1,18 @@
 import { createClient } from 'redis';
 import Constants from '../config/constants.js';
-import { logg, warnLog } from '../utils/logger.js';
+import { errorLog, greenLog, logg, warnLog } from '../utils/logger.js';
 
 
 class RedisService {
     constructor() {
-        logg(Constants)
         this.REDIS_KEY = Constants.Redis.KEY || '';
         this.ENABLED = Constants.Redis.Enabled || false;
         if (this.ENABLED) {
-            this.client = createClient({
-                url: `redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`,
-            });
-            this.client.on('connect', () => {
-                console.log('✅ Connected to Redis');
-            });
-            this.client.on('error', (err) => console.error('❌ Redis Error:', err));
+            this.client = createClient({ url: `redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT}` });
+            this.client.on('connect', () => { greenLog('✅ Connected to Redis'); });
+            this.client.on('error', (err) => errorLog('❌ Redis Error:', err));
         } else {
-            console.log('⚠️ Redis is disabled. Running without cache.');
+            console.log('🚮 Redis is disabled. Running without cache.');
         }
     }
 
@@ -25,6 +20,7 @@ class RedisService {
         if (!this.ENABLED) return;
         try {
             await this.client.connect();
+            await this.deleteAll();
         } catch (err) {
             console.error('❌ Redis Start Error:', err);
         }
@@ -34,7 +30,7 @@ class RedisService {
     async hset(hashKey, field, value, encode = true, expiry = 60 * 60) {
         if (!this.ENABLED) return null;
         try {
-            logg('Setting redis field:', this.REDIS_KEY + hashKey, field?.toString(), value);
+            // logg('Setting redis field:', this.REDIS_KEY + hashKey, field?.toString(), value);
             let res = await this.client.hSet(this.REDIS_KEY + hashKey, field?.toString(), encode ? JSON.stringify(value) : value);
             if (expiry > 0) {
                 await this.client.expire(this.REDIS_KEY + hashKey, expiry);
@@ -51,6 +47,7 @@ class RedisService {
         try {
             // warnLog('Getting redis field:', this.REDIS_KEY + hashKey, field);
             let res = await this.client.hGet(this.REDIS_KEY + hashKey, field?.toString());
+
             return decode ? JSON.parse(res) : res;
         } catch (err) {
             console.error('❌ Redis HGET Error:', err);
@@ -97,6 +94,23 @@ class RedisService {
             console.log('✅ Redis Disconnected');
         } catch (err) {
             console.error('❌ Redis QUIT Error:', err);
+        }
+    }
+
+    async deleteAll() {
+        if (!this.ENABLED) return;
+        try {
+            Object.keys(Constants.RedisKeys).forEach(async (key) => {
+                if ([
+                    Constants.RedisKeys.ADMIN_AUTH,
+                    Constants.RedisKeys.USER_AUTH,
+                ].indexOf(Constants.RedisKeys[key]) < 0) {
+                    await this.del(Constants.RedisKeys[key]);
+                }
+            }
+            );
+        } catch (err) {
+            console.error('❌ Redis DELETEALL Error:', err);
         }
     }
 }
