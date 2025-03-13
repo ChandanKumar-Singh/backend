@@ -46,7 +46,7 @@ if (!Constants.envs.production) {
 }
 
 const logg = (...d) => {
-    console.warn(...d)
+    console.log(...d)
 }
 
 import chalk from 'chalk'; 
@@ -59,6 +59,7 @@ const print = {
     green: (...d) => console.log(chalk.green(d[0]), ...d.slice(1)),
     yellow: (...d) => console.log(chalk.yellow(d[0]), ...d.slice(1)),
     red: (...d) => console.log(chalk.red(d[0]), ...d.slice(1)),
+    fade: (...d) => console.log(chalk.grey(d[0]), ...d.slice(1)),
 };
 const infoLog = (...d) => print.info(...d);
 const warnLog = (...d) => print.warn(...d);
@@ -66,6 +67,7 @@ const errorLog = (...d) => print.error(...d);
 const greenLog = (...d) => print.green(...d);
 const yellowLog = (...d) => print.yellow(...d);
 const redLog = (...d) => print.red(...d);
+const fadeLog = (...d) => print.fade(...d);
 
 
-export { logg, logger, infoLog, warnLog, errorLog, greenLog, yellowLog, redLog };
+export { logg, logger, infoLog, warnLog, errorLog, greenLog, yellowLog, redLog, fadeLog };

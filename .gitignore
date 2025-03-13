@@ -1,15 +1,17 @@
-
+**/.DS_Store
 node_modules/
 .env
 logs/
 
-# Ignore all files inside any folder
-**/*
+# Ignore all files inside any folder from public/
+!public/.gitkeep
+src/public/downloaded/**/*
+!src/public/downloaded/**/.gitkeep
+src/public/user_images/**/*
+!src/public/user_images/**/.gitkeep
 
-# Un-ignore folder structure (keep folders)
-!*/
-!**/.gitkeep
 
 
 
 .DS_Store
+src/.DS_Store
