@@ -67,7 +67,7 @@ const verifyToken = (token, req, role) => {
 const authenticate = (role) => async (req, res, next) => {
   try {
     const { authorization } = req.headers;
-    logg("🔐 Authorization Header:", authorization);
+    if (!Constants.envs.production) logg("🔐 Authorization Header:", authorization);
 
     if (!authorization || !authorization.startsWith("Bearer ")) {
       return res
@@ -79,7 +79,7 @@ const authenticate = (role) => async (req, res, next) => {
     await verifyToken(token, req, role);
 
     req.sender = Constants.roles.userRoles[role] || "UNKNOWN_ROLE";
-    logg(`✅ User Authenticated: Role=${req.sender}, ID=${req.user?.id || "N/A"}`);
+    if (!Constants.envs.production) logg(`✅ User Authenticated: Role=${req.sender}, ID=${req.user?.id || "N/A"}`);
     next();
   } catch (error) {
     return res
