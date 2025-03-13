@@ -13,6 +13,7 @@ import Constants from './config/constants.js';
 import Redis from './services/RedisService.js';
 import RedisService from './services/RedisService.js';
 import FileDownloadUtils from './utils/FileDownloadUtils.js';
+import CronManager from './cron/CronManager.js';
 const app = express();
 
 app.use(cors());
@@ -38,14 +39,11 @@ app.use('/', routes);
 app.get('/', (req, res) => {
     res.send('Welcome to a hybrid Node.js project with both require & import!');
 });
-FileDownloadUtils.downloadFile('https://www.learningcontainer.com/wp-content/uploads/2020/02/Kalimba.mp3', 'downloaded').then((v) => {
-    console.log("File download response:", v);
-}
-);
 
 app.use(errorHandler);
 
 app.listen(PORT, () => {
     RedisService.start();
     console.log(`Server is running on port ${PORT}`);
+    CronManager.laodJobs();
 });
