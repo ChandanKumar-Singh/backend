@@ -33,20 +33,22 @@ const verifyToken = (token, req, role) => {
           role === Constants.roles.userRoles.ADMIN
             ? Constants.RedisKeys.ADMIN_AUTH
             : Constants.RedisKeys.USER_AUTH;
+        req.user = decoded;
+        req.sender_id = decoded.id;
 
-        const data = await RedisService.hget(redisKey, decoded.id);
-        const decodedData = data;
-
-        warnLog("Decoded JWT:", decoded, role);
-        warnLog("Decoded Redis Data:", decodedData);
-
-        if (!decodedData || decodedData.uniquekey !== decoded.uniquekey) {
-          return reject(new ApiError(httpStatus.UNAUTHORIZED, ResponseCodes.ERROR.SESSION_EXPIRED, true, null, 0, err));
+        if (Constants.Redis.Enabled === true) {
+          logg("🔍 Fetching Redis Data:", Constants.Redis.Enabled);
+          const data = await RedisService.hget(redisKey, decoded.id);
+          const decodedData = data;
+          warnLog("Decoded JWT:", decoded, role);
+          warnLog("Decoded Redis Data:", decodedData);
+          if (!decodedData || decodedData.uniquekey !== decoded.uniquekey) {
+            return reject(new ApiError(httpStatus.UNAUTHORIZED, ResponseCodes.ERROR.SESSION_EXPIRED, true, null, 0, err));
+          }
+          req.user = decodedData;
         }
 
         // Attach user data to request
-        req.user = decodedData;
-        req.sender_id = decodedData.id;
         req.sender = role;
         req.currency = req.currency || Constants.BASE_CURRENCY;
         resolve(decoded);
