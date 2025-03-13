@@ -2,4 +2,14 @@
 node_modules/
 .env
 logs/
+
+# Ignore all files inside any folder
+**/*
+
+# Un-ignore folder structure (keep folders)
+!*/
+!**/.gitkeep
+
+
+
 .DS_Store
