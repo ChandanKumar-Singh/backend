@@ -7,7 +7,7 @@ import { errorLog, logg } from "./logger.js";
 
 class FileUpload {
   uploadFiles = async (req, res, fields, folderName) => {
-    const uploadFolder = path.join(path.resolve(Constants.path.root), Constants.path.publicKey, folderName);
+    const uploadFolder = path.join(Constants.path.root_public, folderName);
 
     if (!fs.existsSync(uploadFolder)) {
       fs.mkdirSync(uploadFolder, { recursive: true });
@@ -27,7 +27,7 @@ class FileUpload {
     const fileFilter = (allowed) => (req, file, callback) => {
       const ext = path.extname(file.originalname).toLowerCase();
       if (allowed.includes(ext)) {
-        callback(null, true); 
+        callback(null, true);
       } else {
         const tempErr = new Error(
           `Invalid file type! Only ${allowed.join(", ")} files are allowed.`
@@ -85,10 +85,8 @@ class FileUpload {
     errorLog("Deleting files: ", files, reason);
     try {
       files.forEach(file => {
-        const filePath = path.join(path.resolve(Constants.path.root), Constants.path.publicKey, file);
-        if (path && fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-        }
+        const filePath = path.join(Constants.path.root_public, file);
+        if (path && fs.existsSync(filePath)) fs.unlinkSync(filePath);
       }
       );
     }
