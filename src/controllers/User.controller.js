@@ -7,6 +7,7 @@ import { mObj, withTransaction } from '../lib/mongoose.utils.js';
 import resConv from '../utils/resConv.js';
 import UserDBO from '../dbos/UserDBO.js';
 import { logg } from '../utils/logger.js';
+import AuthenticateDBO from '../dbos/AuthenticateDBO.js';
 
 class UserController {
     uploadImage = catchAsync(async (req, res, next) => {
@@ -17,7 +18,7 @@ class UserController {
             Constants.paths.DEFAULT_USER_IMAGE_PATH
         );
         let file = null;
-        if ('image' in tempUpload.files && tempUpload.files.image.length > 0) {
+        if (tempUpload.files && 'image' in tempUpload.files && tempUpload.files.image.length > 0) {
             file = tempUpload.files.image[0];
         }
 
@@ -36,26 +37,25 @@ class UserController {
         res.status(httpStatus.OK).send(resConv({ ...obj }));
     });
 
-    create = catchAsync(async (req, res) => {
-        const adminId = mObj(req.admin.id);
-        const response = await UserDBO.createUpdateQuery({ ...req.body, adminId });
+    create = catchAsync(async (req, res) => withTransaction(async (session) => {
+        const response = await AuthenticateDBO.createUser(req, { session });
         res.status(httpStatus.OK).send(resConv(response));
-    });
+    }));
 
     update = catchAsync(async (req, res) => withTransaction(async (session) => {
         const response = await UserDBO.update(req, { session });
         res.status(httpStatus.OK).send(resConv(response));
-    }));
+    })); 
 
     isExists = catchAsync(async (req, res) => {
         const { id, contact, type } = req.body;
-        const isExists = await UserDBO.isExists(contact, type, mObj(id));
-        res.status(httpStatus.OK).send(resConv({ is_exists: isExists }));
+        const isExists = await UserDBO.getById(id);
+        res.status(httpStatus.OK).send(resConv({ is_exists: isExists !== undefined }));
     });
 
     list = catchAsync(async (req, res) => {
-        const { query_data } = req.body;
-        const users = await UserDBO.getList(req);
+        let query = [{ $match: { type: Constants.roles.userRoles.USER } }];
+        const users = await UserDBO.getList({ query });
         res.status(httpStatus.OK).send(resConv(users));
         // if (query_data[0].name == "is_member" && query_data !==null){
         //    const response = users.filter(val => val.is_member == query_data[0].value)
@@ -67,7 +67,7 @@ class UserController {
     });
 
     adminList = catchAsync(async (req, res) => {
-        const response = await UserDBO.getAdminList(req);
+        const response = await UserDBO.getAllAdmins();
         res.status(httpStatus.OK).send(resConv(response));
     });
 

@@ -15,7 +15,6 @@ const UserSchema = new Schema(
     company_name: { type: String },
     state: { type: String },
     city: { type: String },
-    full_contact: { type: String, unique: true, sparse: true },
     email: { type: String, lowercase: true },
     title: { type: String },
     reg_id: { type: String },
@@ -48,7 +47,7 @@ const UserSchema = new Schema(
     last_login: { type: Date },
     otp: { type: String },
     deviceId: { type: mongoose.Schema.Types.ObjectId, ref: "devices" },
-    fcmToken: { type: String , default: ''},
+    fcmToken: { type: String, default: '' },
     is_profile_completed: { type: Boolean, default: false },
   },
   {
@@ -59,7 +58,6 @@ const UserSchema = new Schema(
 UserSchema.index({ name: 1 });
 UserSchema.index({ contact: 1 });
 UserSchema.index({ email: 1 });
-UserSchema.index({ full_contact: 1 });
 
 UserSchema.set("toJSON", {
   virtuals: true,
@@ -79,7 +77,7 @@ UserSchema.set("toJSON", {
 UserSchema.post("save", (doc) => {
   /* UserDBO.purgeCache(doc._id);
   if (doc.member_id) {
-    EventUtils.dispatch(Constants.EVENTS.MEMBER_USERS_UPDATE, {
+    EventUtils.dispatch(Constants.EVENT.MEMBER_USERS_UPDATE, {
       memberId: doc.member_id,
     });
   } */

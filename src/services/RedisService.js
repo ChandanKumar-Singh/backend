@@ -100,12 +100,12 @@ class RedisService {
     async deleteAll() {
         if (!this.ENABLED) return;
         try {
-            Object.keys(Constants.RedisKeys).forEach(async (key) => {
+            Object.keys(Constants.REDIS_KEYS).forEach(async (key) => {
                 if ([
-                    Constants.RedisKeys.ADMIN_AUTH,
-                    Constants.RedisKeys.USER_AUTH,
-                ].indexOf(Constants.RedisKeys[key]) < 0) {
-                    await this.del(Constants.RedisKeys[key]);
+                    Constants.REDIS_KEYS.ADMIN_AUTH,
+                    Constants.REDIS_KEYS.USER_AUTH,
+                ].indexOf(Constants.REDIS_KEYS[key]) < 0) {
+                    await this.del(Constants.REDIS_KEYS[key]);
                 }
             }
             );
