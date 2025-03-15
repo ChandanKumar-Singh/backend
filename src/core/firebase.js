@@ -13,5 +13,5 @@ try {
     LogUtils.log("✅ Firebase Admin SDK initialized successfully.");
 } catch (error) {
     LogUtils.error("❌ Firebase Admin SDK initialization failed:", error);
-}
+} 
 

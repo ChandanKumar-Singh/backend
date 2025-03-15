@@ -118,7 +118,6 @@ class DeviceDBO {
     assignDeviceToUser = async (userId, data, { session }) => {
         let device = await DeviceInfo.findOne({ deviceId: data.deviceId }).session(session);
         if (!device) device = new DeviceInfo({ userId });
-        else logg('Device already exists:', device);
         if (data.deviceId) device.deviceId = data.deviceId;
         if (data.fingerprint) device.fingerprint = data.fingerprint;
         if (data.deviceType) device.deviceType = data.deviceType;
