@@ -1,3 +1,4 @@
+import { create } from "domain";
 import Constants from "../config/constants.js";
 import { mObj, mongoOne } from "../lib/mongoose.utils.js";
 import DeviceInfo from "../models/core/DeviceInfo.js";
@@ -64,6 +65,8 @@ class DeviceDBO {
                         isActive: 1,
                         lastActiveAt: 1,
                         fcmToken: 1,
+                        createdAt: 1,
+                        updatedAt: 1,
                         createdAtText: 1,
                         updatedAtText: 1,
                         lastActiveAtText: 1,
@@ -115,6 +118,7 @@ class DeviceDBO {
     assignDeviceToUser = async (userId, data, { session }) => {
         let device = await DeviceInfo.findOne({ deviceId: data.deviceId }).session(session);
         if (!device) device = new DeviceInfo({ userId });
+        else logg('Device already exists:', device);
         if (data.deviceId) device.deviceId = data.deviceId;
         if (data.fingerprint) device.fingerprint = data.fingerprint;
         if (data.deviceType) device.deviceType = data.deviceType;
@@ -131,7 +135,7 @@ class DeviceDBO {
         user.deviceId = device._id;
         user.fcmToken = device.fcmToken;
         await user.save({ session });
-        return device;
+        return mongoOne(await this.query({ query: [{ $match: { deviceId: device.deviceId } }], session }));
     }
 
     deleteUserDevice = async (userId, deviceId, { session }) => {

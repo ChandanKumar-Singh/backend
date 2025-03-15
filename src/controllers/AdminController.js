@@ -14,7 +14,7 @@ class AdminController {
             req,
             res,
             [{ name: 'image', maxCount: 2 }],
-            Constants.path.DEFAULT_USER_IMAGE_PATH
+            Constants.paths.DEFAULT_USER_IMAGE_PATH
         );
         let file = null;
         if ('image' in tempUpload.files && tempUpload.files.image.length > 0) {
@@ -24,7 +24,7 @@ class AdminController {
         req.body = {
             ...req.body,
             ...tempUpload.body,
-            image: file ? Constants.path.DEFAULT_USER_IMAGE_PATH + file.filename : null,
+            image: file ? Constants.paths.DEFAULT_USER_IMAGE_PATH + file.filename : null,
         };
         next();
     });
@@ -38,7 +38,7 @@ class AdminController {
                 // { name: 'images', maxCount: 50 },
                 // { name: 'videos', maxCount: 10 },
             ],
-            Constants.path.DEFAULT_USER_IMAGE_PATH
+            Constants.paths.DEFAULT_USER_IMAGE_PATH
         );
 
         let thumbnail = null;
@@ -59,9 +59,9 @@ class AdminController {
         req.body = {
             ...req.body,
             ...tempUpload.body,
-            thumbnail: thumbnail ? Constants.path.DEFAULT_USER_IMAGE_PATH + thumbnail.filename : null,
-            images: images.map((i) => Constants.path.DEFAULT_USER_IMAGE_PATH + i.filename),
-            videos: videos.map((i) => Constants.path.DEFAULT_USER_IMAGE_PATH + i.filename),
+            thumbnail: thumbnail ? Constants.paths.DEFAULT_USER_IMAGE_PATH + thumbnail.filename : null,
+            images: images.map((i) => Constants.paths.DEFAULT_USER_IMAGE_PATH + i.filename),
+            videos: videos.map((i) => Constants.paths.DEFAULT_USER_IMAGE_PATH + i.filename),
         };
         next();
     });

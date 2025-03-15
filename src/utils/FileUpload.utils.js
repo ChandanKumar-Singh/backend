@@ -7,7 +7,7 @@ import { errorLog, logg } from "./logger.js";
 
 class FileUpload {
   uploadFiles = async (req, res, fields, folderName) => {
-    const uploadFolder = path.join(Constants.path.root_public, folderName);
+    const uploadFolder = path.join(Constants.paths.root_public, folderName);
 
     if (!fs.existsSync(uploadFolder)) {
       fs.mkdirSync(uploadFolder, { recursive: true });
@@ -85,7 +85,7 @@ class FileUpload {
     errorLog("Deleting files: ", files, reason);
     try {
       files.forEach(file => {
-        const filePath = path.join(Constants.path.root_public, file);
+        const filePath = path.join(Constants.paths.root_public, file);
         if (path && fs.existsSync(filePath)) fs.unlinkSync(filePath);
       }
       );

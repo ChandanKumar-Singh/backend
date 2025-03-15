@@ -108,8 +108,8 @@ class UserDBO {
                         type: 1,
                         profilePicture: {
                             $concat: [
-                                Constants.path.public_url,
-                                { $ifNull: ['$image', Constants.path.DEFAULT_USER_IMAGE] },
+                                Constants.paths.public_url,
+                                { $ifNull: ['$image', Constants.paths.DEFAULT_USER_IMAGE] },
                             ],
                         },
                         age: 1,
@@ -211,7 +211,7 @@ class UserDBO {
         const user = await UserModel.findById(mObj(id)).session(session);
         if (!user) throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
         if (image) {
-            if (user.image && user.image !== Constants.path.DEFAULT_USER_IMAGE) {
+            if (user.image && user.image !== Constants.paths.DEFAULT_USER_IMAGE) {
                 FileUploadUtils.deleteFiles([user.image], 'User Image Update');
             }
             user.image = image;

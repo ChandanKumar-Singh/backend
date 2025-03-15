@@ -1,10 +1,9 @@
 import dotenv from 'dotenv';
 dotenv.config();
-import { fileURLToPath } from 'url';
 import path from 'path';
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import { dirname } from '../utils/PathUtils.js';
 
+/* 
 
 const Constants = {
     db: {
@@ -73,8 +72,8 @@ const Constants = {
     DATE_FORMAT: '%Y-%m-%d',
     TIME_FORMAT: '%H:%M:%S',
     path: {
-        root: path.normalize(__dirname + '/..'),
-        root_public: path.normalize(__dirname + '/..') + '/public/',
+        root: path.normalize(dirname + '/..'),
+        root_public: path.normalize(dirname + '/..') + '/public/',
         publicKey: 'public',
         public_url: process.env.URL + '/public/',
         DEFAULT_USER_IMAGE: 'default_user_image.jpg',
@@ -116,7 +115,182 @@ const Constants = {
         USER_UPDATE: 'USER_UPDATE',
     },
 
+    log:{
+        LOG_ENABLED: process.env.LOG_ENABLED == true,
+        WARNING_ENABLED: process.env.WARNING_ENABLED == true,
+        ERROR_ENABLED: process.env.ERROR_ENABLED == true,
+    }
 
-}
+
+} */
+
+// Destructure environment variables for easy access
+const {
+    MONGO_URI,
+    NODE_ENV,
+    SECRET_ACCESS_KEY,
+    SESSION_EXPIRATION,
+    SALT_ROUNDS,
+    TIME_ZONE,
+    TIME_ZONE_NAME,
+    URL,
+    REDIS_ENABLED,
+    REDIS_HOST,
+    REDIS_PORT,
+    REDIS_PASSWORD,
+    REDIS_KEY,
+    EVENT_ENABLED,
+    LOG_ENABLED,
+    WARNING_ENABLED,
+    ERROR_ENABLED
+} = process.env;
+
+// Environment configurations
+const envs = {
+    test: NODE_ENV === "test",
+    local: NODE_ENV === "local",
+    development: NODE_ENV === "development",
+    production: NODE_ENV === "production",
+    isLive: NODE_ENV === "production" || NODE_ENV === "development", // ✅ Self-referencing
+};
+
+// Database configurations
+const db = {
+    mongo: { uri: MONGO_URI }
+};
+
+// routes configurations
+const routes = {
+    view: "/",
+    api: "/api",
+    admin: "/admin",
+};
+
+// Security configurations
+const security = {
+    sessionSecret: SECRET_ACCESS_KEY || "base64:Olvke97cjrcZg4ZYv2nlXxHTLNIs2XWFw9oVuH/OH5E=",
+    sessionExpiration: Number(SESSION_EXPIRATION) || 60 * 60 * 24 * 7, // 1 week default
+    saltRounds: Number(SALT_ROUNDS) || 12,
+};
+
+// Role-based configurations
+const roles = {
+    userRoles: {
+        ADMIN: "ADMIN",
+        USER: "USER",
+        MEMBER: "MEMBER",
+        PARTICIPANT: "PARTICIPANT",
+    },
+    adminRole: {
+        GENERAL: "GENERAL",
+        CHAPTER_ADMIN: "CHAPTER_ADMIN",
+    },
+    role: {
+        OWNER: "OWNER",
+        SHOWROOM_MANAGER: "SHOWROOM_MANAGER",
+        OTHERS: "OTHERS",
+        CORPORATE_HR: "CORPORATE_HR",
+    },
+};
+
+// User status constants
+const USER_STATUS = {
+    ACTIVE: "ACTIVE",
+    RESIGNED: "RESIGNED",
+    TERMINATED: "TERMINATED",
+    RETIRED: "RETIRED",
+    EXPIRED: "EXPIRED",
+    ABSCONDED: "ABSCONDED",
+    INACTIVE: "INACTIVE",
+    SUSPENDED: "SUSPENDED",
+    DELETED: "DELETED",
+};
+
+// Page status
+const pageStatus = {
+    DRAFT: "draft",
+    PUBLISHED: "published",
+    INACTIVE: "inactive",
+};
+
+// Path configurations
+const rootPath = path.normalize(dirname + "/..");
+
+const paths = {
+    root: rootPath,
+    root_public: `${rootPath}/public/`,
+    publicKey: "public",
+    public_url: `${URL}/public/`,
+    DEFAULT_USER_IMAGE: "default_user_image.jpg",
+    DEFAULT_USER_IMAGE_PATH: "user_images/",
+};
+
+// Device configurations
+const Device = {
+    os: {
+        WINDOWS: "Windows",
+        MACOS: "macOS",
+        LINUX: "Linux",
+        IOS: "iOS",
+        ANDROID: "Android",
+    },
+    deviceType: {
+        DESKTOP: "desktop",
+        MOBILE: "mobile",
+        TABLET: "tablet",
+        UNKNOWN: "unknown",
+    }
+};
+
+// Redis configurations
+const Redis = {
+    Enabled: REDIS_ENABLED === "true",
+    Host: REDIS_HOST || "localhost",
+    Port: Number(REDIS_PORT) || 6379,
+    Password: REDIS_PASSWORD || "",
+    KEY: REDIS_KEY || "TRIDGE_",
+};
+
+// Redis keys
+const RedisKeys = {
+    ADMIN_AUTH: "ADMIN_AUTH",
+    USER_AUTH: "USER_AUTH",
+    USER_DETAILS: "USER_DETAILS",
+};
+
+// Event system
+const Events = {
+    Enabled: EVENT_ENABLED === "true",
+    USER_UPDATE: "USER_UPDATE",
+};
+
+// Logging configuration
+const log = {
+    LOG_ENABLED: LOG_ENABLED === "true",
+    WARNING_ENABLED: WARNING_ENABLED === "true",
+    ERROR_ENABLED: ERROR_ENABLED === "true",
+};
+
+// Final Constants Object (Self-contained)
+const Constants = {
+    db,
+    envs,
+    routes,
+    security,
+    roles,
+    USER_STATUS,
+    pageStatus,
+    TIME_ZONE: Number(TIME_ZONE) || 5.5,
+    TIME_ZONE_NAME: TIME_ZONE_NAME || "UTC",
+    DATE_TIME_FORMAT: "%Y-%m-%d | %H:%M",
+    DATE_FORMAT: "%Y-%m-%d",
+    TIME_FORMAT: "%H:%M:%S",
+    paths,
+    Device,
+    Redis,
+    RedisKeys,
+    Events,
+    log,
+};
 
 export default Constants;

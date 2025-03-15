@@ -30,7 +30,7 @@ class FileDownloadUtils {
                 if (memeType.includes('audio')) folderType = 'audio';
                 if (memeType.includes('video')) folderType = 'videos';
                 savePath = path.join(savePath, folderType);
-                savePath = path.join(Constants.path.root_public, savePath);
+                savePath = path.join(Constants.paths.root_public, savePath);
 
                 if (!fs.existsSync(savePath)) {
                     fs.mkdirSync(savePath, { recursive: true });

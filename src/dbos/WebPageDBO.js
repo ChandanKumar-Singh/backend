@@ -53,8 +53,8 @@ class WebPageDBO {
                             email: "$createdByUser.email",
                             profilePicture: {
                                 $concat: [
-                                    Constants.path.public_url,
-                                    { $ifNull: ['$createdByUser.image', Constants.path.DEFAULT_USER_IMAGE] },
+                                    Constants.paths.public_url,
+                                    { $ifNull: ['$createdByUser.image', Constants.paths.DEFAULT_USER_IMAGE] },
                                 ],
                             },
                         },
@@ -67,8 +67,8 @@ class WebPageDBO {
                                     email: "$updatedByUser.email",
                                     profilePicture: {
                                         $concat: [
-                                            Constants.path.public_url,
-                                            { $ifNull: ["$updatedByUser.image", Constants.path.DEFAULT_USER_IMAGE] },
+                                            Constants.paths.public_url,
+                                            { $ifNull: ["$updatedByUser.image", Constants.paths.DEFAULT_USER_IMAGE] },
                                         ],
                                     },
                                 },
