@@ -12,7 +12,7 @@ import { name } from 'ejs';
 
 class UserDBO {
     constructor() {
-        EventService.on(Constants.Events.USER_UPDATE, ({ userId }) => {
+        EventService.on(Constants.EVENT.USER_UPDATE, ({ userId }) => {
             infoLog('UserDBO Event:', 'USER_UPDATE', userId);
             userId && this.purgeCache(userId);
         });
@@ -63,15 +63,16 @@ class UserDBO {
                 { $unwind: { path: '$companyObj', preserveNullAndEmptyArrays: true } },
                 {
                     $lookup: {
-                        from: 'preferences',
+                        from: 'notificationpreferences',
                         localField: '_id',
-                        foreignField: 'user_id',
-                        as: 'preferences',
+                        foreignField: 'user',
+                        as: 'notificationPreferences',
                     },
                 },
+                { $unwind: { path: '$notificationPreferences', preserveNullAndEmptyArrays: true } },
                 {
                     $addFields: {
-                        fullName: { $concat: ['$firstName', ' ', '$lastName'] },
+                        fullName: { $concat: ['$name', ' ', '$lastName'] },
                         ageGroup: {
                             $switch: {
                                 branches: [
@@ -93,25 +94,29 @@ class UserDBO {
 
             // Add sorting, pagination, and projection
             pipeline.push(
-                { $sort: { [sortBy]: sortOrder } }, // Sorting
-                { $skip: skip }, // Pagination - Skip items
-                { $limit: limit }, // Pagination - Limit items
+                { $sort: { [sortBy]: sortOrder } },
+                { $skip: skip },
+                { $limit: limit },
+                {
+                    $set: {
+                        image: {
+                            $concat: [
+                                Constants.paths.public_url,
+                                { $ifNull: ['$image', Constants.paths.DEFAULT_USER_IMAGE] },
+                            ],
+                        }
+                    }
+                },
                 {
                     $project: {
                         name: 1,
-                        firstName: 1,
                         lastName: 1,
                         fullName: 1,
                         email: 1,
                         contact: 1,
                         role: 1,
                         type: 1,
-                        profilePicture: {
-                            $concat: [
-                                Constants.paths.public_url,
-                                { $ifNull: ['$image', Constants.paths.DEFAULT_USER_IMAGE] },
-                            ],
-                        },
+                        image: 1,
                         age: 1,
                         ageGroup: 1,
                         gender: 1,
@@ -128,15 +133,22 @@ class UserDBO {
                             code: '$companyObj.code',
                             industry: '$companyObj.industry',
                         },
-                        preferences: {
-                            $map: {
-                                input: '$preferences',
-                                as: 'preference',
-                                in: {
-                                    key: '$$preference.key',
-                                    value: '$$preference.value',
-                                },
+                        notification_preferences: {
+                            _id: '$notificationPreferences._id',
+                            user: {
+                                _id: '$_id',
+                                email: '$email',
+                                name: '$name',
+                                role: '$role',
+                                type: '$type',
+                                status: '$status',
+                                isActive: '$isActive',
+                                image: '$image',
+                                contact: '$contact',
+                                country_code: '$country_code',
                             },
+                            preferences: '$notificationPreferences.preferences',
+                            deliveryChannels: '$notificationPreferences.deliveryChannels',
                         },
                         status: 1,
                         isActive: 1,
@@ -156,7 +168,8 @@ class UserDBO {
 
 
             // Fetch total count separately for pagination metadata
-            const total = await UserModel.countDocuments(query).session(session);
+            const filter = query.length > 0 ? query[0].$match : {};
+            const total = await UserModel.countDocuments(filter).session(session);
 
             return {
                 total,
@@ -178,7 +191,7 @@ class UserDBO {
     }
 
     getById = async (id, { session = null, shouldForce = false } = {}) => {
-        const redisKey = Constants.RedisKeys.USER_DETAILS;
+        const redisKey = Constants.REDIS_KEYS.USER_DETAILS;
         const redisData = await RedisService.hget(redisKey, id);
         if (redisData && !shouldForce) {
             return redisData;
@@ -195,7 +208,28 @@ class UserDBO {
     };
 
     getList = async ({ query, session = null }) => {
-        return await this.fetchUsers({ query: [], session, paginate: true });
+        logg('UserDBO -> getList -> query:', query);
+        return await this.fetchUsers({ query, session, paginate: true });
+    }
+    create = async (data, { session }) => {
+        const {
+            image,
+            name,
+            email,
+            contact,
+            fcmToken,
+
+        } = data;
+        const user = new UserModel({
+            image,
+            name,
+            email,
+            contact,
+            fcmToken,
+        });
+        await user.save({ session });
+        EventService.emit(Constants.EVENT.USER_UPDATE, { userId: user._id });
+        return await this.getById(user._id, { session });
     }
 
     update = async (data, { session, sendMail = false, sendOtp = false }) => {
@@ -231,7 +265,7 @@ class UserDBO {
         if (deviceId) user.deviceId = deviceId;
         if (data.status) user.status = data.status;
         await user.save({ session, new: true });
-        EventService.emit(Constants.Events.USER_UPDATE, { userId: id });
+        EventService.emit(Constants.EVENT.USER_UPDATE, { userId: id });
         return await this.getById(mObj(id), { session });
     }
 
@@ -242,7 +276,7 @@ class UserDBO {
          /// user data basis dispatches
         } */
         await RedisService.hdel(
-            Constants.RedisKeys.USER_DETAILS,
+            Constants.REDIS_KEYS.USER_DETAILS,
             userId.toString()
         );
     };

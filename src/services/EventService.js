@@ -3,9 +3,9 @@ import { warnLog } from "../utils/logger.js";
 
 class EventUtils {
     constructor() {
-        this.enabled = Constants.Events.Enabled || false;
-        this.events = {}; 
-        warnLog(`🎪 EventUtils is ${this.enabled?'enabled':'disabled'}`); 
+        this.enabled = Constants.EVENT.Enabled || false;
+        this.events = {};
+        warnLog(`🎪 EventUtils is ${this.enabled ? 'enabled' : 'disabled'}`);
     }
 
     // ✅ Subscribe to an event

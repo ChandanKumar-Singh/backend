@@ -252,14 +252,15 @@ const Redis = {
 };
 
 // Redis keys
-const RedisKeys = {
+const REDIS_KEYS = {
     ADMIN_AUTH: "ADMIN_AUTH",
     USER_AUTH: "USER_AUTH",
     USER_DETAILS: "USER_DETAILS",
+    NOTIFICATION_PREFERENCE: "NOTIFICATION_PREFERENCE_",
 };
 
 // Event system
-const Events = {
+const EVENT = {
     Enabled: EVENT_ENABLED === "true",
     USER_UPDATE: "USER_UPDATE",
 };
@@ -288,8 +289,8 @@ const Constants = {
     paths,
     Device,
     Redis,
-    RedisKeys,
-    Events,
+    REDIS_KEYS,
+    EVENT,
     log,
 };
 

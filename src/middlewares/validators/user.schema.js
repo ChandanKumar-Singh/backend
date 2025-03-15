@@ -11,7 +11,6 @@ const crudSchema = (isRequired = false) => {
         status: Joi.string().optional().allow('', null),
         role: Joi.string().optional().allow('', null),
         country_code: Joi.string().optional().allow('', null),
-
     };
 };
 

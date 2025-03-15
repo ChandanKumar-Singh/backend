@@ -14,12 +14,13 @@ import { generateVerificationCode } from "../utils/Helper.utils.js";
 import RolesUtil from "../lib/RolesUtil.js";
 import RedisService from "../services/RedisService.js";
 import DeviceInfo from "../models/core/DeviceInfo.js";
+import NotificationPreferenceDBO from "./notification/NotificationPreferenceDBO.js";
 
 class AuthenticateDBO {
   getUser = async (contactPr, isAdmin = false, { session = null } = {}) => {
     if (contactPr) {
       let query = {};
-      if (contactPr.includes('@')) {
+      if (contactPr.includes("@")) {
         query = { email: contactPr };
       } else {
         const { contact, country_code } = getCountryContact(contactPr);
@@ -43,13 +44,20 @@ class AuthenticateDBO {
   processAdminAuthentication = async (tempAuth, { session }) => {
     const uniqueKey = AuthenticateUtils.makeid();
     const token = tempAuth.generateToken(uniqueKey);
-    const userDetails = await UserDBO.getById(tempAuth._id, { session: session });
-    await RedisService.hset(Constants.RedisKeys.ADMIN_AUTH, tempAuth._id, {
-      uniquekey: uniqueKey,
-      role: tempAuth.role,
-      type: tempAuth.type,
-      id: tempAuth._id,
-    }, 60 * 60 * 24 * 360);
+    const userDetails = await UserDBO.getById(tempAuth._id, {
+      session: session,
+    });
+    await RedisService.hset(
+      Constants.REDIS_KEYS.ADMIN_AUTH,
+      tempAuth._id,
+      {
+        uniquekey: uniqueKey,
+        role: tempAuth.role,
+        type: tempAuth.type,
+        id: tempAuth._id,
+      },
+      60 * 60 * 24 * 360
+    );
     return {
       token: token,
       user_id: tempAuth._id,
@@ -61,13 +69,20 @@ class AuthenticateDBO {
   processAppAuthentication = async (tempAuth, { session }) => {
     const uniqueKey = AuthenticateUtils.makeid();
     const token = tempAuth.generateToken(uniqueKey);
-    const userDetails = await UserDBO.getById(tempAuth._id, { session: session });
-    await RedisService.hset(Constants.RedisKeys.USER_AUTH, tempAuth._id, {
-      uniquekey: uniqueKey,
-      role: tempAuth.role,
-      type: tempAuth.type,
-      id: tempAuth._id,
-    }, 60 * 60 * 24 * 360);
+    const userDetails = await UserDBO.getById(tempAuth._id, {
+      session: session,
+    });
+    await RedisService.hset(
+      Constants.REDIS_KEYS.USER_AUTH,
+      tempAuth._id,
+      {
+        uniquekey: uniqueKey,
+        role: tempAuth.role,
+        type: tempAuth.type,
+        id: tempAuth._id,
+      },
+      60 * 60 * 24 * 360
+    );
     return {
       token: token,
       user_id: tempAuth._id,
@@ -106,7 +121,9 @@ class AuthenticateDBO {
 
   createAdmin = async (req, { session = null } = {}) => {
     const { contact, country_code, password, name, email, role, type } = req;
-    const tempAuth = await this.getUser(country_code + ' ' + contact, true, { session: session });
+    const tempAuth = await this.getUser(country_code + " " + contact, true, {
+      session: session,
+    });
     if (tempAuth)
       throw new ApiError(
         httpStatus.OK,
@@ -126,6 +143,36 @@ class AuthenticateDBO {
     return await this.processAdminAuthentication(user, { session: session });
   };
 
+  createUser = async (req, { session = null, processAuth = true } = {}) => {
+    const { contact, country_code, password, name, email, role, type } = req;
+    const tempAuth = await this.getUser(country_code + " " + contact, false, {
+      session: session
+    });
+    if (tempAuth)
+      throw new ApiError(
+        httpStatus.OK,
+        ResponseCodes.USER_ERRORS.USER_ALREADY_EXISTS(contact)
+      );
+    let user = new UserModel({
+      contact,
+      country_code,
+      password,
+      name,
+      email,
+      role,
+      type,
+      status: Constants.USER_STATUS.ACTIVE,
+    });
+    await user.save({ session });
+    await NotificationPreferenceDBO.createUserPreference(user._id, { session });
+    if (processAuth) {
+      return await this.processAppAuthentication(user, { session: session });
+    } else {
+      return await UserDBO.getById(user._id, { session: session });
+    }
+  }
+
+
   sendOtp = async (contact, isAdmin = false, { session }) => {
     const tempAuth = await this.getUser(contact, isAdmin, { session: session });
     if (tempAuth) {
@@ -143,18 +190,25 @@ class AuthenticateDBO {
          otp
        ); */
       return {
-        message: "A verification code has been sent to your registered mobile number/email",
+        message:
+          "A verification code has been sent to your registered mobile number/email",
       };
     }
     throw new ApiError(httpStatus.OK, "User not found");
   };
 
-  verifyOTP = async (contact, otp, { isAdmin = false, session = null } = {}) => {
+  verifyOTP = async (
+    contact,
+    otp,
+    { isAdmin = false, session = null } = {}
+  ) => {
     const tempAuth = await this.getUser(contact, isAdmin, { session });
     if (tempAuth && tempAuth.status !== Constants.USER_STATUS.ACTIVE) {
       throw new ApiError(httpStatus.OK, "User Suspended");
     }
-    if (!tempAuth
+    if (
+      !tempAuth
+      /// TODO: Uncomment this condition for real
       // ||  tempAuth.otp !== otp
     ) {
       logg("otp", tempAuth?.otp, otp);
@@ -176,8 +230,12 @@ class AuthenticateDBO {
     const { username, password } = data;
     const tempAuth = await this.getUser(username);
     if (!tempAuth) throw new ApiError(httpStatus.OK, "Account not found");
-    if (!username.includes('@')) {
-      var res = await this.sendOtp(username, tempAuth.type === Constants.roles.userRoles.ADMIN, { session: session })
+    if (!username.includes("@")) {
+      var res = await this.sendOtp(
+        username,
+        tempAuth.type === Constants.roles.userRoles.ADMIN,
+        { session: session }
+      );
       return res;
     }
     if (!tempAuth.authenticate(password)) {
@@ -232,15 +290,12 @@ class AuthenticateDBO {
   };
 
   logoutUser = async (userId) => {
-    await RedisService.hdel(Constants.RedisKeys.USER_AUTH, userId);
-    DeviceInfo.updateMany(
-      { userId: mObj(userId) },
-      { fcmToken: null }
-    );
+    await RedisService.hdel(Constants.REDIS_KEYS.USER_AUTH, userId);
+    DeviceInfo.updateMany({ userId: mObj(userId) }, { fcmToken: null });
     UserDBO.update({
       id: userId,
       fcmToken: null,
-      deviceId: null
+      deviceId: null,
     });
   };
 
@@ -379,11 +434,8 @@ class AuthenticateDBO {
     if (user) {
       user.status = Constants.USER_STATUS.DELETED;
       await user.save();
-      await RedisService.hdel(Constants.RedisKeys.USER_AUTH, userId);
-      await DeviceInfo.updateMany(
-        { userId: mObj(userId) },
-        { fcmToken: null }
-      );
+      await RedisService.hdel(Constants.REDIS_KEYS.USER_AUTH, userId);
+      await DeviceInfo.updateMany({ userId: mObj(userId) }, { fcmToken: null });
       await UserDBO.update({
         id: userId,
         fcmToken: null,
@@ -443,13 +495,13 @@ class AuthenticateDBO {
 
   getAllAdmins = async () => {
     return await UserModel.find({ type: Constants.roles.userRoles.ADMIN });
-  }
+  };
 
   deleteAllAdmins = async () => {
-    return await UserModel.deleteMany({ type: Constants.roles.userRoles.ADMIN });
-  }
+    return await UserModel.deleteMany({
+      type: Constants.roles.userRoles.ADMIN,
+    });
+  };
 }
 
 export default new AuthenticateDBO();
-
-

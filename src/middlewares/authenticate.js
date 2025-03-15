@@ -31,8 +31,8 @@ const verifyToken = (token, req, role) => {
       try {
         const redisKey =
           role === Constants.roles.userRoles.ADMIN
-            ? Constants.RedisKeys.ADMIN_AUTH
-            : Constants.RedisKeys.USER_AUTH;
+            ? Constants.REDIS_KEYS.ADMIN_AUTH
+            : Constants.REDIS_KEYS.USER_AUTH;
         req.user = decoded;
         req.sender_id = decoded.id;
 
