@@ -14,7 +14,7 @@ class UserController {
             req,
             res,
             [{ name: 'image', maxCount: 2 }],
-            Constants.path.DEFAULT_USER_IMAGE_PATH
+            Constants.paths.DEFAULT_USER_IMAGE_PATH
         );
         let file = null;
         if ('image' in tempUpload.files && tempUpload.files.image.length > 0) {
@@ -24,7 +24,7 @@ class UserController {
         req.body = {
             ...req.body,
             ...tempUpload.body,
-            image: file ? Constants.path.DEFAULT_USER_IMAGE_PATH + file.filename : null,
+            image: file ? Constants.paths.DEFAULT_USER_IMAGE_PATH + file.filename : null,
         };
         next();
     });
