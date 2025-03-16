@@ -9,9 +9,11 @@ import UserDBO from '../dbos/UserDBO.js';
 import { logg } from '../utils/logger.js';
 import AuthenticateDBO from '../dbos/AuthenticateDBO.js';
 import NotificationService from '../services/notification_service/NotificationService.js';
+import QueryUtils from '../lib/QueryUtils.js';
 
 class UserController {
     uploadImage = catchAsync(async (req, res, next) => {
+        logg('📸 Uploading image...', req.body);
         const tempUpload = await FileUploadUtils.uploadFiles(
             req,
             res,
@@ -32,6 +34,7 @@ class UserController {
     });
 
     detail = catchAsync(async (req, res) => {
+        logg('detail', req.body);
         const { id } = req.body;
         const obj = await UserDBO.getById(mObj(id));
         if (!obj) throw new ApiError(httpStatus.OK, 'User not found');
@@ -44,9 +47,10 @@ class UserController {
     }));
 
     update = catchAsync(async (req, res) => withTransaction(async (session) => {
-        const response = await UserDBO.update(req, { session });
+        logg('update', req.body);
+        const response = await UserDBO.update(req.body, { session });
         res.status(httpStatus.OK).send(resConv(response));
-    })); 
+    }));
 
     isExists = catchAsync(async (req, res) => {
         const { id, contact, type } = req.body;
@@ -55,16 +59,8 @@ class UserController {
     });
 
     list = catchAsync(async (req, res) => {
-        let query = [{ $match: { type: Constants.roles.userRoles.USER } }];
-        const users = await UserDBO.getList({ query });
+        const users = await UserDBO.getList(req.body);
         res.status(httpStatus.OK).send(resConv(users));
-        // if (query_data[0].name == "is_member" && query_data !==null){
-        //    const response = users.filter(val => val.is_member == query_data[0].value)
-        //     res.status(httpStatus.OK).send(resConv(response));
-        // }else{
-        //     res.status(httpStatus.OK).send(resConv(users));
-        // }
-
     });
 
     adminList = catchAsync(async (req, res) => {

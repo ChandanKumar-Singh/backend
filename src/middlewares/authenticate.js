@@ -30,7 +30,7 @@ const verifyToken = (token, req, role) => {
 
       try {
         const redisKey =
-          role === Constants.roles.userRoles.ADMIN
+          role === Constants.roles.accessLevels.ADMIN
             ? Constants.REDIS_KEYS.ADMIN_AUTH
             : Constants.REDIS_KEYS.USER_AUTH;
         req.user = decoded;
@@ -78,7 +78,7 @@ const authenticate = (role) => async (req, res, next) => {
     const token = authorization.split(" ")[1];
     await verifyToken(token, req, role);
 
-    req.sender = Constants.roles.userRoles[role] || "UNKNOWN_ROLE";
+    req.sender = Constants.roles.accessLevels[role] || "UNKNOWN_ROLE";
     if (!Constants.envs.production) logg(`✅ User Authenticated: Role=${req.sender}, ID=${req.user?.id || "N/A"}`);
     next();
   } catch (error) {
@@ -89,5 +89,5 @@ const authenticate = (role) => async (req, res, next) => {
 };
 
 // Export specific middlewares for different roles
-export const AdminMiddleware = authenticate(Constants.roles.userRoles.ADMIN);
-export const UserMiddleware = authenticate(Constants.roles.userRoles.USER);
+export const AdminMiddleware = authenticate(Constants.roles.accessLevels.ADMIN);
+export const UserMiddleware = authenticate(Constants.roles.accessLevels.USER);

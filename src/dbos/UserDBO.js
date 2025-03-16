@@ -14,6 +14,7 @@ import { NotificationCategory, NotificationCodes, NotificationPriority, Notifica
 import ApiError from '../middlewares/ApiError.js';
 import NotificationMessages from '../config/notificationMessages.js';
 import ResponseCodes from '../config/ResponseCodes.js';
+import QueryUtils from '../lib/QueryUtils.js';
 
 class UserDBO {
     constructor() {
@@ -41,8 +42,10 @@ class UserDBO {
         limit = 20,
         sortBy = "createdAt",
         sortOrder = -1,
+        sort,
     } = {}) {
         try {
+            // logg('fetchUsers:', JSON.stringify(query, null, 2), { midQuery, project, timezone, paginate, page, limit, sortBy, sortOrder, sort });
             const skip = (page - 1) * limit;
 
             const pipeline = [
@@ -99,7 +102,7 @@ class UserDBO {
 
             // Add sorting, pagination, and projection
             pipeline.push(
-                { $sort: { [sortBy]: sortOrder } },
+                { $sort: sort || { [sortBy]: sortOrder } },
                 { $skip: skip },
                 { $limit: limit },
                 {
@@ -173,8 +176,15 @@ class UserDBO {
 
 
             // Fetch total count separately for pagination metadata
-            const filter = query.length > 0 ? query[0].$match : {};
-            const total = await UserModel.countDocuments(filter).session(session);
+            // const filter = query.length > 0 ? query[0].$match : {};
+            // Extract all `$match` conditions into a single object
+            const countFilter = pipeline
+                .filter(stage => stage.$match)  // Get only $match stages
+                .map(stage => stage.$match)     // Extract $match contents
+                .reduce((acc, match) => ({      // Merge them together
+                    $and: [...(acc.$and || []), ...(match.$and || [match])]
+                }), {});
+            const total = await UserModel.countDocuments(countFilter).session(session);
 
             return {
                 total,
@@ -182,6 +192,10 @@ class UserDBO {
                 limit,
                 pages: Math.ceil(total / limit),
                 users,
+                query,
+                midQuery,
+                timezone,
+                countFilter,
             };
 
         } catch (error) {
@@ -192,7 +206,7 @@ class UserDBO {
 
 
     getAllAdmins = async (q) => {
-        return await this.fetchUsers({ query: [{ $match: { type: Constants.roles.userRoles.ADMIN } }], paginate: true, limit: 20 });
+        return await this.fetchUsers({ query: [{ $match: { type: Constants.roles.accessLevels.ADMIN } }], paginate: true, limit: 20 });
     }
 
     getById = async (id, { session = null, shouldForce = false } = {}) => {
@@ -212,10 +226,14 @@ class UserDBO {
         }
     };
 
-    getList = async ({ query, session = null }) => {
-        logg('UserDBO -> getList -> query:', query);
-        return await this.fetchUsers({ query, session, paginate: true });
-    }
+    getList = async (data = {}, { session = null } = {}) => {
+        // const allowedFields = new Set(["status", "createdAt", "category", "price", "user", "email", "username"]);
+        // const regexFields = ["email", "username", "fullName"];
+        let { timezone, sort, midQuery, query, page } = QueryUtils.buildQuery(data, [], []);
+        query = [...query, { $match: { type: Constants.roles.accessLevels.USER } }];
+        return await this.fetchUsers({ query, midQuery, timezone, sort, page, session, paginate: true });
+    };
+
     create = async (data, { session }) => {
         const {
             image,
@@ -259,7 +277,7 @@ class UserDBO {
         if (email) {
             user.email = email;
             if (sendMail) {
-                AuthenticateDBO.sendMail(email, user.type === Constants.roles.userRoles.ADMIN, { session });
+                AuthenticateDBO.sendMail(email, user.type === Constants.roles.accessLevels.ADMIN, { session });
                 return { message: ResponseCodes.SUCCESS_MESSAGES.EMAIL_OTP_SENT };
             }
         }
@@ -267,7 +285,7 @@ class UserDBO {
             const { contact, country_code } = getCountryContact(contact);
             user.contact = contact;
             user.country_code = country_code;
-            if (sendOtp) return await AuthenticateDBO.sendOtp(contact, user.type === Constants.roles.userRoles.ADMIN, { session });
+            if (sendOtp) return await AuthenticateDBO.sendOtp(contact, user.type === Constants.roles.accessLevels.ADMIN, { session });
         }
         if (fcmToken) user.fcmToken = fcmToken;
         if (deviceId) user.deviceId = deviceId;

@@ -21,7 +21,7 @@ const UserSchema = new Schema(
     image: { type: String, default: Constants.DEFAULT_USER_IMAGE },
     type: {
       type: String,
-      enum: Object.values(Constants.roles.userRoles),
+      enum: Object.values(Constants.roles.accessLevels),
     },
     role: {
       type: String,

@@ -175,7 +175,7 @@ const security = {
 
 // Role-based configurations
 const roles = {
-    userRoles: {
+    accessLevels: {
         ADMIN: "ADMIN",
         USER: "USER",
         MEMBER: "MEMBER",
