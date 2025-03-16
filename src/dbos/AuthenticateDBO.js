@@ -15,6 +15,7 @@ import RolesUtil from "../lib/RolesUtil.js";
 import RedisService from "../services/RedisService.js";
 import DeviceInfo from "../models/core/DeviceInfo.js";
 import NotificationPreferenceDBO from "./notification/NotificationPreferenceDBO.js";
+import EmailService from "../services/EmailService.js";
 
 class AuthenticateDBO {
   getUser = async (contactPr, isAdmin = false, { session = null } = {}) => {
@@ -195,6 +196,16 @@ class AuthenticateDBO {
       };
     }
     throw new ApiError(httpStatus.OK, "User not found");
+  };
+
+  sendMail = async (email, subject, message) => {
+    const mailOptions = {
+      from: Constants.EMAIL_FROM,
+      to: email,
+      subject: subject,
+      html: message,
+    };
+    EmailService.sendMail(mailOptions);
   };
 
   verifyOTP = async (

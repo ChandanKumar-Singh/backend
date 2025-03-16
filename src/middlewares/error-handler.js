@@ -127,7 +127,7 @@ function extractDuplicateErrorMessage(error) {
  * @param {string} reason  - The reason for the error.
  */
 function loggError(err, reason) {
-  if (!err.isOperational && Constants.envs.production) {
+  if (!err.isOperational && !Constants.envs.production) {
     logger.error(err.message || reason, {
       // message: err.message,
       // statusCode: err.statusCode,

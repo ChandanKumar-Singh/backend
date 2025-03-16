@@ -33,7 +33,7 @@ const notificationPreferenceSchema = new mongoose.Schema(
         deliveryChannels: {
             type: [String],
             enum: Object.values(DeliveryChannel),
-            default: Object.values(DeliveryChannel),
+            default: [DeliveryChannel.PUSH],
             validate: {
                 validator: function (channels) {
                     return channels.every(channel => Object.values(DeliveryChannel).includes(channel));

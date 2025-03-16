@@ -1,6 +1,6 @@
 import { createClient } from 'redis';
 import Constants from '../config/constants.js';
-import { errorLog, greenLog, logg, warnLog } from '../utils/logger.js';
+import { errorLog, greenLog, infoLog, logg, logger, warnLog } from '../utils/logger.js';
 
 
 class RedisService {
@@ -22,7 +22,7 @@ class RedisService {
             await this.client.connect();
             await this.deleteAll();
         } catch (err) {
-            console.error('❌ Redis Start Error:', err);
+            errorLog('❌ Redis Start Error:', err);
         }
     }
 
@@ -30,14 +30,15 @@ class RedisService {
     async hset(hashKey, field, value, encode = true, expiry = 60 * 60) {
         if (!this.ENABLED) return null;
         try {
-            // logg('Setting redis field:', this.REDIS_KEY + hashKey, field?.toString(), value);
-            let res = await this.client.hSet(this.REDIS_KEY + hashKey, field?.toString(), encode ? JSON.stringify(value) : value);
+            let data = encode ? JSON.stringify(value) : value;
+            // infoLog('Setting redis field:', this.REDIS_KEY + hashKey, field?.toString(), data);
+            let res = await this.client.hSet(this.REDIS_KEY + hashKey, field?.toString(),data);
             if (expiry > 0) {
                 await this.client.expire(this.REDIS_KEY + hashKey, expiry);
             }
             return res;
         } catch (err) {
-            console.error('❌ Redis HSET Error:', err);
+            errorLog('❌ Redis HSET Error:', err);
         }
     }
 
@@ -47,10 +48,9 @@ class RedisService {
         try {
             // warnLog('Getting redis field:', this.REDIS_KEY + hashKey, field);
             let res = await this.client.hGet(this.REDIS_KEY + hashKey, field?.toString());
-
             return decode ? JSON.parse(res) : res;
         } catch (err) {
-            console.error('❌ Redis HGET Error:', err);
+            errorLog('❌ Redis HGET Error:', err);
         }
     }
 
@@ -61,7 +61,7 @@ class RedisService {
             // logg('Getting redis hash:', this.REDIS_KEY + hashKey);
             return await this.client.hGetAll(this.REDIS_KEY + hashKey);
         } catch (err) {
-            console.error('❌ Redis HGETALL Error:', err);
+            errorLog('❌ Redis HGETALL Error:', err);
         }
     }
 
@@ -72,7 +72,7 @@ class RedisService {
             // logg('Deleting redis field:', this.REDIS_KEY + hashKey, field);
             return await this.client.hDel(this.REDIS_KEY + hashKey, field?.toString());
         } catch (err) {
-            console.error('❌ Redis HDEL Error:', err);
+            errorLog('❌ Redis HDEL Error:', err);
         }
     }
 
@@ -83,7 +83,7 @@ class RedisService {
             // logg('Deleting redis key:', this.REDIS_KEY + hashKey);
             return await this.client.del(this.REDIS_KEY + hashKey);
         } catch (err) {
-            console.error('❌ Redis DEL Error:', err);
+            errorLog('❌ Redis DEL Error:', err);
         }
     }
 
@@ -93,7 +93,7 @@ class RedisService {
             await this.client.quit();
             console.log('✅ Redis Disconnected');
         } catch (err) {
-            console.error('❌ Redis QUIT Error:', err);
+            errorLog('❌ Redis QUIT Error:', err);
         }
     }
 
@@ -110,7 +110,7 @@ class RedisService {
             }
             );
         } catch (err) {
-            console.error('❌ Redis DELETEALL Error:', err);
+            errorLog('❌ Redis DELETEALL Error:', err);
         }
     }
 }
