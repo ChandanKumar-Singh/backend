@@ -267,9 +267,9 @@ const EVENT = {
 
 // Logging configuration
 const log = {
-    LOG_ENABLED: LOG_ENABLED === "true",
-    WARNING_ENABLED: WARNING_ENABLED === "true",
-    ERROR_ENABLED: ERROR_ENABLED === "true",
+    LOG_ENABLED: LOG_ENABLED === "true" || false,
+    WARNING_ENABLED: WARNING_ENABLED === "true" || false,
+    ERROR_ENABLED: ERROR_ENABLED === "true" || false,
 };
 
 // Final Constants Object (Self-contained)

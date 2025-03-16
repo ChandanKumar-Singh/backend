@@ -5,6 +5,7 @@ import {
     NotificationType,
     DeliveryChannel,
     NotificationPriority,
+    NotificationCodes,
 } from "../../../config/NotificationEnums.js";
 
 const notificationSchema = new mongoose.Schema(
@@ -48,13 +49,14 @@ const notificationSchema = new mongoose.Schema(
             trim: true,
         },
 
-        actionCode: {
+        code: {
             type: String,
             required: true,
+            enum: Object.values(NotificationCodes),
             trim: true,
         },
 
-        actionData: {
+        data: {
             type: mongoose.Schema.Types.Mixed,
             default: {},
         },
@@ -73,6 +75,11 @@ const notificationSchema = new mongoose.Schema(
         read: {
             type: Boolean,
             default: false,
+        },
+
+        readAt: {
+            type: Date,
+            default: null,
         },
 
         sent: {
@@ -122,42 +129,10 @@ notificationSchema.pre("save", function (next) {
  * @param {Object} data - Notification details
  * @returns {Promise<Object>} - Created notification
  */
-notificationSchema.statics.createNotification = async function (data) {
-    return await this.create(data);
+notificationSchema.statics.createNotification = async function (data, { session }) {
+    return await this.create(data, { session });
 };
 
-/**
- * Get notifications for a specific user
- * @param {String} userId - User's ID
- * @param {Number} limit - Number of notifications to fetch
- * @returns {Promise<Array>} - List of notifications
- */
-notificationSchema.statics.getUserNotifications = async function (
-    userId,
-    { limit = 10, page = 1, sort = "-createdAt" }
-) {
-    const query = { user: userId };
-    if (page < 0) {
-        return await this.find(query).sort(sort);
-    }
-    const options = {
-        limit: Math.abs(limit),
-        sort,
-        skip: Math.abs(limit) * (Math.abs(page) - 1),
-    };
-    return await this.find(query, null, options);
-};
-
-/**
- * Delete a notification by ID
- * @param {String} notificationId - Notification ID
- * @returns {Promise<Object>} - Deleted notification
- */
-notificationSchema.statics.deleteNotification = async function (
-    notificationId
-) {
-    return await this.findByIdAndDelete(notificationId);
-};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ✅ Instance Methods (Document-Level)
@@ -167,18 +142,20 @@ notificationSchema.statics.deleteNotification = async function (
  * Mark a notification as read
  * @returns {Promise<Object>} - Updated notification
  */
-notificationSchema.methods.markAsRead = async function () {
+notificationSchema.methods.markAsRead = async function ({ session }) {
     this.read = true;
-    return await this.save();
+    this.readAt = new Date();
+    return await this.save({ session, new: true });
 };
 
 /**
  * Mark a notification as unread
  * @returns {Promise<Object>} - Updated notification
  */
-notificationSchema.methods.markAsUnread = async function () {
+notificationSchema.methods.markAsUnread = async function ({ session }) {
     this.read = false;
-    return await this.save();
+    this.readAt = null;
+    return await this.save({ session, new: true });
 };
 
 /**
@@ -186,9 +163,16 @@ notificationSchema.methods.markAsUnread = async function () {
  * @param {Object} updates - Fields to update
  * @returns {Promise<Object>} - Updated notification
  */
-notificationSchema.methods.updateNotification = async function (updates) {
+notificationSchema.methods.updateNotification = async function (updates, { session }) {
     Object.assign(this, updates);
-    return await this.save();
+    return await this.save({ session, new: true });
+};
+
+// toJson
+notificationSchema.methods.toJSON = function () {
+    const notification = this.toObject();
+    delete notification.__v;
+    return notification;
 };
 
 export default mongoose.model("Notification", notificationSchema);

@@ -43,7 +43,7 @@ const verifyToken = (token, req, role) => {
           // warnLog("Decoded JWT:", decoded, role);
           // warnLog("Decoded Redis Data:", decodedData);
           if (!decodedData || decodedData.uniquekey !== decoded.uniquekey) {
-            return reject(new ApiError(httpStatus.UNAUTHORIZED, ResponseCodes.ERROR.SESSION_EXPIRED, true, null, 0, err));
+            return reject(new ApiError(httpStatus.UNAUTHORIZED, ResponseCodes.AUTH_ERRORS.SESSION_EXPIRED, true, null, 0, err));
           }
           req.user = decodedData;
         }
@@ -72,7 +72,7 @@ const authenticate = (role) => async (req, res, next) => {
     if (!authorization || !authorization.startsWith("Bearer ")) {
       return res
         .status(httpStatus.UNAUTHORIZED)
-        .json(resConv(null, ResponseCodes.ERROR.UNAUTHORIZED_ACCESS, 0, new Error().stack));
+        .json(resConv(null, ResponseCodes.AUTH_ERRORS.UNAUTHORIZED_ACCESS, 0, new Error().stack));
     }
 
     const token = authorization.split(" ")[1];

@@ -8,6 +8,7 @@ import resConv from '../utils/resConv.js';
 import UserDBO from '../dbos/UserDBO.js';
 import { logg } from '../utils/logger.js';
 import AuthenticateDBO from '../dbos/AuthenticateDBO.js';
+import NotificationService from '../services/notification_service/NotificationService.js';
 
 class UserController {
     uploadImage = catchAsync(async (req, res, next) => {

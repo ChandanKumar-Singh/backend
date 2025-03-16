@@ -2,13 +2,18 @@ import UserModel from '../models/UserModel.js'; // Adjust as needed
 import Constants from '../config/constants.js';
 import DateUtils from '../utils/DateUtils.js';
 import { mObj, mongoOne } from '../lib/mongoose.utils.js';
-import { infoLog, logg } from '../utils/logger.js';
+import { infoLog, logg, logger, LogUtils } from '../utils/logger.js';
 import httpStatus from 'http-status';
 import AuthenticateDBO from './AuthenticateDBO.js';
 import FileUploadUtils from '../utils/FileUpload.utils.js';
 import EventService from '../services/EventService.js';
 import RedisService from '../services/RedisService.js';
 import { name } from 'ejs';
+import NotificationService from '../services/notification_service/NotificationService.js';
+import { NotificationCategory, NotificationCodes, NotificationPriority, NotificationSource, NotificationType } from '../config/NotificationEnums.js';
+import ApiError from '../middlewares/ApiError.js';
+import NotificationMessages from '../config/notificationMessages.js';
+import ResponseCodes from '../config/ResponseCodes.js';
 
 class UserDBO {
     constructor() {
@@ -192,7 +197,7 @@ class UserDBO {
 
     getById = async (id, { session = null, shouldForce = false } = {}) => {
         const redisKey = Constants.REDIS_KEYS.USER_DETAILS;
-        const redisData = await RedisService.hget(redisKey, id);
+        const redisData = await RedisService.hget(redisKey, mObj(id));
         if (redisData && !shouldForce) {
             return redisData;
         } else {
@@ -253,19 +258,28 @@ class UserDBO {
         if (name) user.name = name;
         if (email) {
             user.email = email;
-            // if (sendMail) AuthenticateDBO.sendMail(email, user.type === Constants.roles.userRoles.ADMIN, { session });
+            if (sendMail) {
+                AuthenticateDBO.sendMail(email, user.type === Constants.roles.userRoles.ADMIN, { session });
+                return { message: ResponseCodes.SUCCESS_MESSAGES.EMAIL_OTP_SENT };
+            }
         }
         if (contact) {
             const { contact, country_code } = getCountryContact(contact);
             user.contact = contact;
             user.country_code = country_code;
-            if (sendOtp) AuthenticateDBO.sendOtp(contact, user.type === Constants.roles.userRoles.ADMIN, { session });
+            if (sendOtp) return await AuthenticateDBO.sendOtp(contact, user.type === Constants.roles.userRoles.ADMIN, { session });
         }
         if (fcmToken) user.fcmToken = fcmToken;
         if (deviceId) user.deviceId = deviceId;
         if (data.status) user.status = data.status;
         await user.save({ session, new: true });
         EventService.emit(Constants.EVENT.USER_UPDATE, { userId: id });
+        this.sendUserNotification(id, {
+            title: NotificationMessages.USER_PROFILE.PROFILE_UPDATED.title,
+            message: NotificationMessages.USER_PROFILE.PROFILE_UPDATED.message,
+            code: NotificationCodes.USER_UPDATED,
+            data: { user: user._id },
+        });
         return await this.getById(mObj(id), { session });
     }
 
@@ -280,6 +294,26 @@ class UserDBO {
             userId.toString()
         );
     };
+
+    sendUserNotification = async (userId, payload) => {
+        if (!userId) {
+            logger.warn('UserDBO -> sendUserNotification -> Invalid User ID:', userId);
+            return null;
+        }
+        const notificationData = {
+            user: userId,
+            source: payload.source || NotificationSource.SYSTEM_ALERT,
+            category: payload.category || NotificationCategory.SYSTEM,
+            type: payload.type || NotificationType.SYSTEM,
+            title: payload.title || "New Notification",
+            message: payload.message || "You have a new notification",
+            code: payload.code || NotificationCodes.NOTIFICATION,
+            data: payload.data || {},
+            url: payload.url || null,
+            priority: payload.priority || NotificationPriority.NORMAL,
+        };
+        return await NotificationService.sendNotification(notificationData);
+    }
 }
 
 export default new UserDBO();

@@ -46,7 +46,8 @@ if (!Constants.envs.production) {
 }
 
 const logg = (...d) => {
-  console.log(...d)
+  if (Constants.log.LOG_ENABLED)
+    console.log(...d)
 }
 
 import chalk from 'chalk';
@@ -71,7 +72,7 @@ const fadeLog = (...d) => print.fade(...d);
 
 const LogUtils = (function () {
   return {
-    log: function () {
+    info: function () {
       if (Constants.log.LOG_ENABLED) {
         const args = Array.prototype.slice.call(arguments);
         console.log.apply(console, args);

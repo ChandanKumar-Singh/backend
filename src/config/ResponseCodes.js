@@ -1,7 +1,7 @@
 /**
  * Created by Dev on 28 Dec 2024.
  */
-export default {
+ const ResponseCodes =  {
   // Success Codes
   SUCCESS: 'SUCCESS',
 
@@ -10,16 +10,13 @@ export default {
     PARAMETERS_MISSING: (param) => `Parameters missing: ${param}`,
     SERVER_ERROR: 'Internal server error.',
     INVALID_TOKEN: 'Authentication Failed',
-    SESSION_EXPIRED: 'Session Expired',
     STORE_GEO_FENCE_NOT_FOUND: 'No Store Found In Current Location',
     RESOURCE_NOT_FOUND: (resource) => `Requested resource "${resource}" not found.`,
     UNEXPECTED_ERROR: 'An unexpected error occurred, please try again later.',
     INVALID_REQUEST: 'Invalid request parameters.',
-    ACCESS_DENIED: 'Access Denied',
     TIMEOUT: 'Request timed out. Please try again later.',
     VALIDATION_FAILED: 'Validation Failed',
     USER_NOT_FOUND: (userId) => `User with ID ${userId} not found.`,
-    UNAUTHORIZED_ACCESS: 'Unauthorized Access',
     FORBIDDEN: 'Forbidden action.',
     DATABASE_CONNECTION_FAILED: 'Database connection failed.',
     NOT_FOUND: 'Not found.',
@@ -28,13 +25,14 @@ export default {
   // Authentication Errors
   AUTH_ERRORS: {
     INVALID_CREDENTIALS: 'Invalid credentials.',
-    EXPIRED_TOKEN: 'Session expired',
+    SESSION_EXPIRED: 'Session expired',
     UNAUTHORIZED_ACCESS: 'Unauthorized Access',
     ACCOUNT_LOCKED: 'Account is locked.',
     PASSWORD_INCORRECT: 'Incorrect password.',
     TOKEN_NOT_FOUND: 'Token not found.',
     INVALID_TOKEN: 'Invalid token.',
     ACCOUNT_NOT_VERIFIED: 'Account not verified.',
+    ACCESS_DENIED: 'Access Denied',
   },
 
   // Success Messages
@@ -43,6 +41,7 @@ export default {
     DATA_SAVED: 'Data saved successfully.',
     PASSWORD_CHANGED: 'Password changed successfully.',
     EMAIL_SENT: 'Email has been sent successfully to ${email}.',
+    EMAIL_OTP_SENT: 'An OTP has been sent to ${email}.',
     OPERATION_SUCCESS: 'Operation completed successfully.',
     RESOURCE_CREATED: 'Resource created successfully.',
   },
@@ -89,7 +88,7 @@ export default {
   },
 
   // Notifications
-  NOTIFICATIONS: {
+  ACCOUNT: {
     EMAIL_CONFIRMATION: 'Please confirm your email address.',
     PHONE_VERIFICATION: 'Please verify your phone number.',
     TWO_FACTOR_AUTH: 'Two-factor authentication required.',
@@ -97,3 +96,5 @@ export default {
     ACCOUNT_SUSPENDED: 'Your account has been suspended. Please contact support.',
   },
 };
+
+export default ResponseCodes;
