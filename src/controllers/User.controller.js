@@ -10,6 +10,8 @@ import { logg } from '../utils/logger.js';
 import AuthenticateDBO from '../dbos/AuthenticateDBO.js';
 import NotificationService from '../services/notification_service/NotificationService.js';
 import QueryUtils from '../lib/QueryUtils.js';
+import EmailService from '../services/EmailService.js';
+import { assetPath } from '../utils/PathUtils.js';
 
 class UserController {
     uploadImage = catchAsync(async (req, res, next) => {
@@ -101,6 +103,19 @@ class UserController {
         const response = await ExcelUtils.exportAppUser();
         ResUtils.status(httpStatus.OK).send(res, resConv({ response }));
     });
+
+    sendMail = catchAsync(async (req, res) => {
+        const { template } = req.body;
+        logg(Constants.paths)
+        EmailService.renderEmailTemplate(res, template, {
+            name: "John Doe",
+            actionLink: "https://yourplatform.com/get-started",
+            logo: 'http://localhost:3001/public/logo/android-chrome-512x512.png'
+                // http:/localhost:3001/public/logo/android-chrome-512x512.png 
+        });
+    });
+
 }
+
 
 export default new UserController();

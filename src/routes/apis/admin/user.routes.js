@@ -16,5 +16,6 @@ router.post('/create', AdminMiddleware, UserController.uploadImage, SchemaValida
 router.post('/update', AdminMiddleware, UserController.uploadImage, SchemaValidator(UserSchema.update), UserController.update);
 router.post('/addDevice', AdminMiddleware, SchemaValidator(DeviceSchema.create), DeviceController.registerDevice);
 router.get('/:userId/devices', AdminMiddleware, SchemaValidator(DeviceSchema.byUserId), DeviceController.getUserDevices);
+router.get('/:id/sendMail/:template', assignQueryAndParamsToBody, UserController.sendMail);
 
 export default router;

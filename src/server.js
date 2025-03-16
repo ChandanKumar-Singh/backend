@@ -13,6 +13,7 @@ import RedisService from './services/RedisService.js';
 import CronManager from './cron/CronManager.js';
 import './core/firebase.js';
 import { assignQueryAndParamsToBody } from './middlewares/index.js';
+import { logg } from './utils/logger.js';
 const app = express();
 
 app.use(cors());
@@ -26,7 +27,6 @@ app.use(expressvalidator.check());
 
 app.set("view engine", "ejs");
 app.use("/public", express.static(Constants.paths.root_public));
-
 
 const PORT = process.env.PORT || 3000;
 
