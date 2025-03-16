@@ -35,6 +35,28 @@ class DateUtils {
     return moment(date).format(format);
   }
 
+  formattedTimeZone = (date, time, tz) => {
+    let timeZone = tz;
+    let sign = "+";
+    if (timeZone < 0) {
+      sign = "-";
+      timeZone = timeZone * -1;
+    }
+    const totalMinutes = timeZone * 60;
+    let hours = Math.floor(totalMinutes / 60) + "";
+    let minutes = (totalMinutes % 60) + "";
+
+    if (hours.length < 2) {
+      hours = "0" + hours;
+    }
+
+    if (minutes.length < 2) {
+      minutes = "0" + minutes;
+    }
+
+    return `${date}T${time}${sign}${hours}${minutes}`;
+  };
+
   /**
    * Convert UTC to Local Time.
    */

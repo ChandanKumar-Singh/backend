@@ -12,6 +12,7 @@ import Constants from './config/constants.js';
 import RedisService from './services/RedisService.js';
 import CronManager from './cron/CronManager.js';
 import './core/firebase.js';
+import { assignQueryAndParamsToBody } from './middlewares/index.js';
 const app = express();
 
 app.use(cors());

@@ -3,7 +3,7 @@ import Constants from '../config/constants.js';
 class RolesUtil {
     calculateRole = (departmentId, empCode) => {
         if (['EMP/001', 'EMP/007', 'EMP/322', 'EMP/2391', 'EMP/900'].includes(empCode)) {
-            return Constants.roles.userRoles.OWNER;
+            return Constants.roles.accessLevels.OWNER;
         } else if (['EMP/330'].includes(empCode)) {
             return Constants.roles.role.SHOWROOM_MANAGER;
         } else {

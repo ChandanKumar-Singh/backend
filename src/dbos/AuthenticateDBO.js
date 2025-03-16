@@ -28,11 +28,11 @@ class AuthenticateDBO {
         query = { country_code, contact };
       }
       if (isAdmin) {
-        query["type"] = Constants.roles.userRoles.ADMIN;
+        query["type"] = Constants.roles.accessLevels.ADMIN;
       } else {
         query["$or"] = [
           {
-            type: { $in: Object.values(Constants.roles.userRoles) },
+            type: { $in: Object.values(Constants.roles.accessLevels) },
           },
           { is_member: true },
         ];
@@ -244,7 +244,7 @@ class AuthenticateDBO {
     if (!username.includes("@")) {
       var res = await this.sendOtp(
         username,
-        tempAuth.type === Constants.roles.userRoles.ADMIN,
+        tempAuth.type === Constants.roles.accessLevels.ADMIN,
         { session: session }
       );
       return res;
@@ -505,12 +505,12 @@ class AuthenticateDBO {
   };
 
   getAllAdmins = async () => {
-    return await UserModel.find({ type: Constants.roles.userRoles.ADMIN });
+    return await UserModel.find({ type: Constants.roles.accessLevels.ADMIN });
   };
 
   deleteAllAdmins = async () => {
     return await UserModel.deleteMany({
-      type: Constants.roles.userRoles.ADMIN,
+      type: Constants.roles.accessLevels.ADMIN,
     });
   };
 }

@@ -72,10 +72,10 @@ export const create = {
         'any.only': `Role must be one of: ${Object.values(Constants.roles.adminRole).join(', ')}.`,
       }),
     type: Joi.string()
-      .valid(...Object.values(Constants.roles.userRoles))
+      .valid(...Object.values(Constants.roles.accessLevels))
       .required()
       .messages({
-        'any.only': `Type must be one of: ${Object.values(Constants.roles.userRoles).join(', ')}.`,
+        'any.only': `Type must be one of: ${Object.values(Constants.roles.accessLevels).join(', ')}.`,
       }),
   }
 };
