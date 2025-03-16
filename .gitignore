@@ -9,6 +9,7 @@ src/public/downloaded/**/*
 !src/public/downloaded/**/.gitkeep
 src/public/user_images/**/*
 !src/public/user_images/**/.gitkeep
+!src/public/logo/*
 
 
 

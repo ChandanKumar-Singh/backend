@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= subject %></title>
+    <style>
+      /* Global Styles */
+      body {
+        font-family: "Arial", sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 0;
+      }
+
+      /* Main Container */
+      .container {
+        max-width: 600px;
+        background: #ffffff;
+        margin: 40px auto;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        overflow: hidden;
+      }
+
+      /* Header */
+      .header {
+        background: #007bff;
+        color: white;
+        text-align: center;
+        padding: 25px;
+        font-size: 22px;
+        font-weight: bold;
+        border-radius: 10px 10px 0 0;
+      }
+
+      /* Logo */
+      .logo-container {
+        text-align: center;
+        padding: 15px 0;
+      }
+
+      .logo {
+        max-width: 100px;
+        border-radius: 10%;
+
+      }
+
+      /* Content */
+      .content {
+        padding: 30px;
+        text-align: center;
+        font-size: 16px;
+        color: #333;
+        border-bottom: 1px solid #ddd;
+        line-height: 1.6;
+      }
+
+      /* CTA Button */
+      .button {
+        display: inline-block;
+        padding: 12px 24px;
+        background: #007bff;
+        color: white;
+        text-decoration: none;
+        font-weight: bold;
+        border-radius: 5px;
+        margin-top: 20px;
+      }
+
+      .button:hover {
+        background: #0056b3;
+      }
+
+      /* Footer */
+      .footer {
+        text-align: center;
+        font-size: 14px;
+        color: #777;
+        padding: 20px;
+        background: #f9f9f9;
+        border-radius: 0 0 10px 10px;
+      }
+
+      .footer a {
+        color: #007bff;
+        text-decoration: none;
+        margin: 0 10px;
+      }
+
+      .footer a:hover {
+        text-decoration: underline;
+      }
+
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- ✅ Logo Section -->
+      <div class="logo-container">
+        <img src="<%= logo %>" alt="Company Logo" class="logo" />
+      </div>
+
+      <!-- ✅ Header Section -->
+      <div class="header"><%= headerTitle %></div>
+
+      <!-- ✅ Email Content -->
+      <div class="content">
+        <%- content %>
+        <br />
+        <a href="<%= actionLink %>" class="button">Take Action</a>
+      </div>
+
+      <!-- ✅ Footer Section -->
+      <%- include('./footer.ejs') %>
+    </div>
+  </body>
+</html>
