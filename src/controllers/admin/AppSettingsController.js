@@ -1,14 +1,14 @@
 import httpStatus from 'http-status';
-import catchAsync from '../lib/catchAsync.js';
-import ApiError from '../middlewares/ApiError.js';
-import { mObj, withTransaction } from '../lib/mongoose.utils.js';
-import resConv from '../utils/resConv.js';
-import AppSettingsDBO from '../dbos/AppSettingsDBO.js';
-import { logg } from '../utils/logger.js';
+import catchAsync from '../../lib/catchAsync.js';
+import ApiError from '../../middlewares/ApiError.js';
+import { mObj, withTransaction } from '../../lib/mongoose.utils.js';
+import resConv from '../../utils/resConv.js';
+import AppSettingsDBO from '../../dbos/AppSettingsDBO.js';
+import { logg } from '../../utils/logger.js';
 
 class AppSettingsController {
     detail = catchAsync(async (req, res) => await withTransaction(async (session) => {
-        const settings = await AppSettingsDBO.getSettings({session});
+        const settings = await AppSettingsDBO.getSettings({ session });
         res.status(httpStatus.OK).send(resConv(settings));
     }));
 

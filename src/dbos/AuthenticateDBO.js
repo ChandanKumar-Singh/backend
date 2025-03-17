@@ -128,7 +128,7 @@ class AuthenticateDBO {
     if (tempAuth)
       throw new ApiError(
         httpStatus.OK,
-        ResponseCodes.USER_ERRORS.USER_ALREADY_EXISTS(contact)
+        ResponseCodes.USER_ERRORS.ACCOUNT_ALREADY_EXISTS(contact)
       );
     let user = new UserModel({
       contact,
@@ -239,7 +239,7 @@ class AuthenticateDBO {
 
   login = async (data, { session = null } = {}) => {
     const { username, password } = data;
-    const tempAuth = await this.getUser(username);
+    let tempAuth = await this.getUser(username);
     if (!tempAuth) throw new ApiError(httpStatus.OK, "Account not found");
     if (!username.includes("@")) {
       var res = await this.sendOtp(
@@ -251,43 +251,19 @@ class AuthenticateDBO {
     }
     if (!tempAuth.authenticate(password)) {
       const err = new ApiError(
-        httpStatus.OK,
-        "Invalid credentials! Please verify."
+        httpStatus.BAD_REQUEST,
+       ResponseCodes.AUTH_ERRORS.INVALID_CREDENTIALS
       );
       throw err;
     }
 
     if (tempAuth && tempAuth.status !== Constants.USER_STATUS.ACTIVE) {
-      throw new ApiError(httpStatus.OK, "User Suspended", true, "", -1);
+      throw new ApiError(httpStatus.BAD_REQUEST, ResponseCodes.ACCOUNT.ACCOUNT_SUSPENDED, true, "", -1);
     }
 
     tempAuth.last_login = new Date();
-    await tempAuth.save({ session });
-    const uniqueKey = AuthenticateUtils.makeid();
-    const token = tempAuth.generateToken(uniqueKey);
-    const role = RolesUtil.calculateRole(
-      tempAuth.department_id,
-      tempAuth.emp_code
-    );
-    /*  /// Redis: USER_AUTH Store 
-     AuthenticateUtils.add(Constants.REDIS_KEY.USER_AUTH + tempAuth._id, {
-       uniquekey: uniqueKey,
-       id: tempAuth._id.toString(),
-       name_en: `${tempAuth.name_en}`,
-       name_hi: `${tempAuth.name_hi}`,
-       emp_code: tempAuth.emp_code,
-       location_id: tempAuth.location_id,
-       department_id: tempAuth.department_id,
-       role: role,
-     }); */
-    // const empDetails = await EmployeeDBO.getById(tempAuth._id);
-    return {
-      token: token,
-      user_id: tempAuth._id,
-      role: role,
-      ...tempAuth.toJSON(),
-      // ...empDetails,
-    };
+    tempAuth = await tempAuth.save({ session });
+    return await this.processAdminAuthentication(tempAuth, { session: session });
   };
 
   getProfile = async (userId) => {

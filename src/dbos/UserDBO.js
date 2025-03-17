@@ -158,6 +158,7 @@ class UserDBO {
                             preferences: '$notificationPreferences.preferences',
                             deliveryChannels: '$notificationPreferences.deliveryChannels',
                         },
+                        
                         status: 1,
                         isActive: 1,
                         createdAt: 1,

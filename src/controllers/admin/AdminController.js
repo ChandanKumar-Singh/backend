@@ -1,12 +1,12 @@
-import Constants from "../config/constants.js";
-import UserDBO from "../dbos/UserDBO.js";
-import catchAsync from "../lib/catchAsync.js";
-import FileUploadUtils from "../utils/FileUpload.utils.js";
+import Constants from "../../config/constants.js";
+import UserDBO from "../../dbos/UserDBO.js";
+import catchAsync from "../../lib/catchAsync.js";
+import FileUploadUtils from "../../utils/FileUpload.utils.js";
 import httpStatus from 'http-status'
-import resConv from "../utils/resConv.js";
-import AuthenticateDBO from "../dbos/AuthenticateDBO.js";
-import { withTransaction } from "../lib/mongoose.utils.js";
-import { logg } from "../utils/logger.js";
+import resConv from "../../utils/resConv.js";
+import AuthenticateDBO from "../../dbos/AuthenticateDBO.js";
+import { withTransaction } from "../../lib/mongoose.utils.js";
+import { logg } from "../../utils/logger.js";
 
 class AdminController {
     uploadImage = catchAsync(async (req, res, next) => {

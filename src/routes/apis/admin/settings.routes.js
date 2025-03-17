@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { AdminMiddleware } from '../../../middlewares/authenticate.js';
 import SchemaValidator from '../../../middlewares/SchemaValidator.js';
 import * as AppSettingSchema from '../../../middlewares/validators/appsettings.schema.js';
-import AppSettingsController from '../../../controllers/AppSettingsController.js';
+import AppSettingsController from '../../../controllers/admin/AppSettingsController.js';
 
 const router = Router();
 

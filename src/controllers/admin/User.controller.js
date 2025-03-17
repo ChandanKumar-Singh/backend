@@ -1,17 +1,17 @@
 import httpStatus from 'http-status';
-import catchAsync from '../lib/catchAsync.js';
-import FileUploadUtils from '../utils/FileUpload.utils.js';
-import Constants from '../config/constants.js';
-import ApiError from '../middlewares/ApiError.js';
-import { mObj, withTransaction } from '../lib/mongoose.utils.js';
-import resConv from '../utils/resConv.js';
-import UserDBO from '../dbos/UserDBO.js';
-import { logg } from '../utils/logger.js';
-import AuthenticateDBO from '../dbos/AuthenticateDBO.js';
-import NotificationService from '../services/notification_service/NotificationService.js';
-import QueryUtils from '../lib/QueryUtils.js';
-import EmailService from '../services/EmailService.js';
-import { assetPath } from '../utils/PathUtils.js';
+import catchAsync from '../../lib/catchAsync.js';
+import FileUploadUtils from '../../utils/FileUpload.utils.js';
+import Constants from '../../config/constants.js';
+import ApiError from '../../middlewares/ApiError.js';
+import { mObj, withTransaction } from '../../lib/mongoose.utils.js';
+import resConv from '../../utils/resConv.js';
+import UserDBO from '../../dbos/UserDBO.js';
+import { logg } from '../../utils/logger.js';
+import AuthenticateDBO from '../../dbos/AuthenticateDBO.js';
+import NotificationService from '../../services/notification_service/NotificationService.js';
+import QueryUtils from '../../lib/QueryUtils.js';
+import EmailService from '../../services/EmailService.js';
+import { assetPath } from '../../utils/PathUtils.js';
 
 class UserController {
     uploadImage = catchAsync(async (req, res, next) => {
@@ -111,7 +111,7 @@ class UserController {
             name: "John Doe",
             actionLink: "https://yourplatform.com/get-started",
             logo: 'http://localhost:3001/public/logo/android-chrome-512x512.png'
-                // http:/localhost:3001/public/logo/android-chrome-512x512.png 
+            // http:/localhost:3001/public/logo/android-chrome-512x512.png 
         });
     });
 

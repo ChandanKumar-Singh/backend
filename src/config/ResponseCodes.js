@@ -66,6 +66,7 @@
   // User-related Errors
   USER_ERRORS: {
     USER_ALREADY_EXISTS: (data) => `User with ${data} already exists.`,
+    ACCOUNT_ALREADY_EXISTS: (data) => `Account with ${data} already exists.`,
     EMAIL_ALREADY_REGISTERED: (email) => `Email ${email} is already registered.`,
     INVALID_USER_INPUT: 'Invalid user input.',
     USER_ACCOUNT_INACTIVE: 'User account is inactive. Please contact support.',
