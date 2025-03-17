@@ -1,11 +1,11 @@
 import { Router } from 'express';
 import { AdminMiddleware } from '../../../middlewares/authenticate.js';
-import UserController from '../../../controllers/User.controller.js';
+import UserController from '../../../controllers/admin/User.controller.js';
 import { assignQueryAndParamsToBody } from '../../../middlewares/index.js';
 import SchemaValidator from '../../../middlewares/SchemaValidator.js';
 import * as UserSchema from '../../../middlewares/validators/user.schema.js';
 import * as DeviceSchema from '../../../middlewares/validators/device.scheme.js';
-import DeviceController from '../../../controllers/DeviceController.js';
+import DeviceController from '../../../controllers/admin/DeviceController.js';
 
 
 const router = Router();

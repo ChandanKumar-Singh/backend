@@ -1,8 +1,8 @@
-import WebPageDBO from "../dbos/WebPageDBO.js";
-import catchAsync from "../lib/catchAsync.js";
-import { withTransaction } from "../lib/mongoose.utils.js";
-import { logg } from "../utils/logger.js";
-import resConv from "../utils/resConv.js";
+import WebPageDBO from "../../dbos/WebPageDBO.js";
+import catchAsync from "../../lib/catchAsync.js";
+import { withTransaction } from "../../lib/mongoose.utils.js";
+import { logg } from "../../utils/logger.js";
+import resConv from "../../utils/resConv.js";
 import httpStatus from 'http-status'
 
 class PageController {

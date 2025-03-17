@@ -1,9 +1,9 @@
 import httpStatus from "http-status";
-import DeviceDBO from "../dbos/DeviceDBO.js";
-import catchAsync from "../lib/catchAsync.js";
-import ApiError from "../middlewares/ApiError.js";
-import resConv from "../utils/resConv.js";
-import { withTransaction } from "../lib/mongoose.utils.js";
+import DeviceDBO from "../../dbos/DeviceDBO.js";
+import catchAsync from "../../lib/catchAsync.js";
+import ApiError from "../../middlewares/ApiError.js";
+import resConv from "../../utils/resConv.js";
+import { withTransaction } from "../../lib/mongoose.utils.js";
 
 class DeviceController {
 

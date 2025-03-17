@@ -34,7 +34,7 @@ export const login = {
       .when("username", {
         is: emailValidator,
         then: Joi.string().required().messages({
-          "any.required": "Password is required when logging in with an email",
+          "any.required": "Password is required.",
         }),
       })
       .messages({
@@ -59,6 +59,28 @@ export const loginSchema = {
 
 
 export const create = {
+  body: {
+    country_code: Joi.string().required().default('+91'),
+    contact: Joi.string().required(),
+    password: Joi.string().required(),
+    name: Joi.string().required(),
+    email: Joi.string().required(),
+    role: Joi.string()
+      .valid(...Object.values(Constants.roles.adminRole))
+      .required()
+      .messages({
+        'any.only': `Role must be one of: ${Object.values(Constants.roles.adminRole).join(', ')}.`,
+      }),
+    type: Joi.string()
+      .valid(...Object.values(Constants.roles.accessLevels))
+      .required()
+      .messages({
+        'any.only': `Type must be one of: ${Object.values(Constants.roles.accessLevels).join(', ')}.`,
+      }),
+  }
+};
+
+export const adminCreate = {
   body: {
     country_code: Joi.string().required().default('+91'),
     contact: Joi.string().required(),
