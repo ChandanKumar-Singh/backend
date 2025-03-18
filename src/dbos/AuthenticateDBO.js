@@ -18,11 +18,11 @@ import NotificationPreferenceDBO from "./notification/NotificationPreferenceDBO.
 import EmailService from "../services/EmailService.js";
 
 class AuthenticateDBO {
-  getUser = async (contactPr, isAdmin = false, { session = null } = {}) => {
+  getUser = async (contactPr, isAdmin = false, { email = null, session = null } = {}) => {
     if (contactPr) {
       let query = {};
-      if (contactPr.includes("@")) {
-        query = { email: contactPr };
+      if (contactPr.includes("@" || email)) {
+        query = { email: email || contactPr };
       } else {
         const { contact, country_code } = getCountryContact(contactPr);
         query = { country_code, contact };
@@ -34,12 +34,28 @@ class AuthenticateDBO {
           {
             type: { $in: Object.values(Constants.roles.accessLevels) },
           },
-          { is_member: true },
         ];
       }
       return mongoOne(await UserModel.find({ ...query }).session(session));
     }
     return null;
+  };
+
+  getUserByUniqueKey = async (uniqueKeys = [], isAdmin = false, { session = null } = {}) => {
+    let query = {};
+    if (isAdmin) {
+      query["type"] = Constants.roles.accessLevels.ADMIN;
+    } else {
+      query["$or"] = [
+        {
+          type: { $in: Object.values(Constants.roles.accessLevels) },
+        },
+      ];
+    }
+    query["$or"] = uniqueKeys.map((key) => {
+      return { [key]: uniqueKeys[key] };
+    });
+    return mongoOne(await UserModel.find({ ...query }).session(session));
   };
 
   processAdminAuthentication = async (tempAuth, { session }) => {
@@ -252,7 +268,7 @@ class AuthenticateDBO {
     if (!tempAuth.authenticate(password)) {
       const err = new ApiError(
         httpStatus.BAD_REQUEST,
-       ResponseCodes.AUTH_ERRORS.INVALID_CREDENTIALS
+        ResponseCodes.AUTH_ERRORS.INVALID_CREDENTIALS
       );
       throw err;
     }
