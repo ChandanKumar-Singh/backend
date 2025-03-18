@@ -79,6 +79,7 @@ const roles = {
         SUPER_ADMIN: "SUPER_ADMIN",
     },
     role: {
+        GENERAL: "GENERAL",
         VENDOR: "VENDOR",
         SHOWROOM_MANAGER: "SHOWROOM_MANAGER",
         OTHERS: "OTHERS",

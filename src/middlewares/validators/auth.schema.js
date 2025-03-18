@@ -66,16 +66,16 @@ export const create = {
     name: Joi.string().required(),
     email: Joi.string().required(),
     role: Joi.string()
-      .valid(...Object.values(Constants.roles.adminRole))
+      .valid(...Object.values(Constants.roles.role))
       .required()
       .messages({
-        'any.only': `Role must be one of: ${Object.values(Constants.roles.adminRole).join(', ')}.`,
+        'any.only': `Role must be one of: ${Object.values(Constants.roles.role).join(', ')}.`,
       }),
     type: Joi.string()
-      .valid(...Object.values(Constants.roles.accessLevels))
+      .valid(...Object.values(Constants.roles.accessLevels).filter((i) => i !== Constants.roles.accessLevels.ADMIN))
       .required()
       .messages({
-        'any.only': `Type must be one of: ${Object.values(Constants.roles.accessLevels).join(', ')}.`,
+        'any.only': `Type must be one of: ${Object.values(Constants.roles.accessLevels).filter((i) => i !== Constants.roles.accessLevels.ADMIN).join(', ')}.`,
       }),
   }
 };

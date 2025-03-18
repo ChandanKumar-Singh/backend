@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { AdminMiddleware } from '../../../middlewares/authenticate.js';
-import UserController from '../../../controllers/admin/User.controller.js';
+import UserController from '../../../controllers/admin/UserController.js';
 import { assignQueryAndParamsToBody } from '../../../middlewares/index.js';
 import SchemaValidator from '../../../middlewares/SchemaValidator.js';
 import * as UserSchema from '../../../middlewares/validators/user.schema.js';
