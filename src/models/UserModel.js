@@ -49,6 +49,8 @@ const UserSchema = new Schema(
     deviceId: { type: mongoose.Schema.Types.ObjectId, ref: "devices" },
     fcmToken: { type: String, default: '' },
     is_profile_completed: { type: Boolean, default: false },
+    resetPasswordToken: { type: String },
+    resetPasswordExpires: { type: Date },
   },
   {
     timestamps: true,
