@@ -43,20 +43,12 @@ export const login = {
   },
 };
 
-
-
-
-
-
 export const loginSchema = {
   body: {
     email: Joi.string().email().required(),
     password: Joi.string().min(6).required(),
   },
 };
-
-
-
 
 export const create = {
   body: {
@@ -135,7 +127,6 @@ export const verifyOTP = {
   }
 };
 
-
 export const completeProfile = {
   body: {
     password: Joi.string().required(),
@@ -161,3 +152,59 @@ export const captureInfo = {
     app_version: Joi.string().optional().allow('', null),
   }
 };
+
+export const forgotPassword = {
+  body: {
+    username: Joi.string()
+      .trim()
+      .required()
+      .custom((value, helpers) => {
+        // Check if the input is an email
+        if (value.includes("@")) {
+          const { error } = emailValidator.validate(value);
+          if (error) return helpers.error("email");
+          return value;
+        }
+        // Validate phone number (with country code)
+        const { error: phoneError } = phoneValidator.validate(value);
+        if (phoneError) return helpers.message(phoneError.details[0].message);
+        return value;
+      })
+      .messages({
+        "any.required": "Username field is required",
+        "email": "Invalid email address",
+      }),
+  }
+}
+
+export const resetPassword = {
+  body: {
+    username: Joi.string()
+      .trim()
+      .required()
+      .custom((value, helpers) => {
+        // Check if the input is an email
+        if (value.includes("@")) {
+          const { error } = emailValidator.validate(value);
+          if (error) return helpers.error("email");
+          return value;
+        }
+        // Validate phone number (with country code)
+        const { error: phoneError } = phoneValidator.validate(value);
+        if (phoneError) return helpers.message(phoneError.details[0].message);
+        return value;
+      })
+      .messages({
+        "any.required": "Username field is required",
+        "email": "Invalid email address",
+      }),
+    password: Joi.string().required(),
+    confirm_password: Joi.string().required().valid(Joi.ref('password')).messages({
+      'any.only': 'Passwords do not match',
+    }),
+    otp: Joi.string().required().length(6).messages({
+      "string.length": "OTP must be 6 characters long",
+    }),
+
+  }
+}

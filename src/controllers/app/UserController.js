@@ -113,18 +113,30 @@ class UserController {
     /// AUTH ///    
 
     create = catchAsync(async (req, res) => withTransaction(async (session) => {
-        let response = await AuthenticateDBO.createUser(req.body, { session: session });
+        let response = await AuthenticateDBO.createUser(req.body, { session });
         res.status(httpStatus.OK).send(resConv(response));
     }));
 
     login = catchAsync(async (req, res) => withTransaction(async (session) => {
-        let response = await AuthenticateDBO.login(req.body, { session: session });
+        let response = await AuthenticateDBO.login(req.body, { session });
         res.status(httpStatus.OK).send(resConv(response));
     }));
 
     verifyOTP = catchAsync(async (req, res) => withTransaction(async (session) => {
         const { username, otp } = req.body;
         let response = await AuthenticateDBO.verifyOTP(username, otp, { session: session, isAdmin: false });
+        res.status(httpStatus.OK).send(resConv(response));
+    }));
+
+    forgotPassword = catchAsync(async (req, res) => withTransaction(async (session) => {
+        const { username } = req.body;
+        let response = await AuthenticateDBO.forgotPassword(username, { session });
+        res.status(httpStatus.OK).send(resConv(response));
+    }));
+
+    resetPassword = catchAsync(async (req, res) => withTransaction(async (session) => {
+        const { username, password, otp } = req.body;
+        let response = await AuthenticateDBO.resetPassword(username, password, otp, { session });
         res.status(httpStatus.OK).send(resConv(response));
     }));
 

@@ -1,5 +1,7 @@
+import { ExpressValidator } from "express-validator";
 import Constants from "../config/constants.js";
 
+const valida = new ExpressValidator();
 export const generateVerificationCode = (len) => {
   if (Constants.envs.production) {
     let text = '';
@@ -10,4 +12,9 @@ export const generateVerificationCode = (len) => {
 
     return text;
   } return '777777';
+}
+
+export const isEmail = (email) => {
+  var regEx = new RegExp(r = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/);
+  return regEx.test(email);
 }

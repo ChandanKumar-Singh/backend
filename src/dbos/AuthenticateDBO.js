@@ -10,7 +10,7 @@ import UserModel from "../models/UserModel.js";
 import ResponseCodes from "../config/ResponseCodes.js";
 import AuthenticateUtils from "../lib/AuthenticateUtils.js";
 import { logg } from "../utils/logger.js";
-import { generateVerificationCode } from "../utils/Helper.utils.js";
+import { generateVerificationCode, isEmail } from "../utils/Helper.utils.js";
 import RolesUtil from "../lib/RolesUtil.js";
 import RedisService from "../services/RedisService.js";
 import DeviceInfo from "../models/core/DeviceInfo.js";
@@ -171,7 +171,7 @@ class AuthenticateDBO {
         httpStatus.OK,
         ResponseCodes.USER_ERRORS.USER_ALREADY_EXISTS(contact)
       );
-      
+
     let user = new UserModel({
       contact,
       country_code,
@@ -191,12 +191,11 @@ class AuthenticateDBO {
     }
   }
 
-
   sendOtp = async (contact, isAdmin = false, { session }) => {
     const tempAuth = await this.getUser(contact, isAdmin, { session: session });
     if (tempAuth) {
       if (tempAuth.status !== Constants.USER_STATUS.ACTIVE) {
-        throw new ApiError(httpStatus.OK, "User Suspended");
+        throw new ApiError(httpStatus.OK, ResponseCodes.ACCOUNT.ACCOUNT_SUSPENDED);
       }
       const otp =
         tempAuth.contact === "8054212321" ? 777777 : generateVerificationCode();
@@ -324,49 +323,45 @@ class AuthenticateDBO {
     if (!tempAuth || !tempAuth.authenticate(currentPassword)) {
       throw new ApiError(httpStatus.OK, "Please Verify Password");
     }
-
     tempAuth.password = password;
-    tempAuth.should_reset_password = false;
     tempAuth.save().then(() => { });
+    return true;
   };
 
-  forgotPassword = async (code) => {
+  forgotPassword = async (code, { session = null } = {}) => {
     const user = await this.getUser(code);
     if (user) {
       user.generatePasswordReset();
-      user.save().then(() => { });
-      let email = user.official_email;
-      if (!email && user.personal_email) {
-        email = user.personal_email;
-      }
-      if (email) {
+      logg("user", user);
+      await user.save({ session })
+      let email = user.official_email || user.personal_email;
+      if (email && isEmail(email)) {
         EmailUtils.sendForgotPasswordEmail(
           email,
           user.name,
           user.resetPasswordToken
         );
+      } else {
+        return await this.sendOtp(user.contact, false, { session: session });
       }
-    } else {
-      const err = new Error("User Doesn't Exists");
-      err.status = 400;
-      throw err;
     }
-  };
+  }
 
-  resetPassword = async (token, password) => {
+  resetPassword = async (token, password, { session = null } = {}) => {
     const tempUser = mongoOne(
-      await EmployeeModel.find({
-        resetPasswordToken: token,
-        resetPasswordExpires: { $gt: Date.now() },
-      })
+      await UserModel.find({
+        // resetPasswordToken: token,
+        contact: token,
+        resetPasswordExpires: { $gt: Date.now() }
+      }).session(session)
     );
     if (tempUser) {
       tempUser.password = password;
       tempUser.resetPasswordToken = undefined;
       tempUser.resetPasswordExpires = undefined;
-      await tempUser.save();
+      await tempUser.save({ session });
     } else {
-      throw new ApiError(httpStatus.OK, "User not found or token expired");
+      throw new ApiError(httpStatus.OK, "Password reset token is invalid or has expired.");
     }
   };
 
@@ -514,6 +509,7 @@ class AuthenticateDBO {
       type: Constants.roles.accessLevels.ADMIN,
     });
   };
+
 }
 
 export default new AuthenticateDBO();
