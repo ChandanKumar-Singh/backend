@@ -8,10 +8,7 @@ import resConv from '../../utils/resConv.js';
 import UserDBO from '../../dbos/UserDBO.js';
 import { logg } from '../../utils/logger.js';
 import AuthenticateDBO from '../../dbos/AuthenticateDBO.js';
-import NotificationService from '../../services/notification_service/NotificationService.js';
-import QueryUtils from '../../lib/QueryUtils.js';
 import EmailService from '../../services/EmailService.js';
-import { assetPath } from '../../utils/PathUtils.js';
 
 class UserController {
     uploadImage = catchAsync(async (req, res, next) => {
@@ -36,7 +33,6 @@ class UserController {
     });
 
     detail = catchAsync(async (req, res) => {
-        logg('detail', req.body);
         const { id } = req.body;
         const obj = await UserDBO.getById(mObj(id));
         if (!obj) throw new ApiError(httpStatus.OK, 'User not found');
@@ -44,12 +40,11 @@ class UserController {
     });
 
     create = catchAsync(async (req, res) => withTransaction(async (session) => {
-        const response = await AuthenticateDBO.createUser(req, { session });
+        const response = await AuthenticateDBO.createUser(req.body, { session, processAuth: false });
         res.status(httpStatus.OK).send(resConv(response));
     }));
 
     update = catchAsync(async (req, res) => withTransaction(async (session) => {
-        logg('update', req.body);
         const response = await UserDBO.update(req.body, { session });
         res.status(httpStatus.OK).send(resConv(response));
     }));

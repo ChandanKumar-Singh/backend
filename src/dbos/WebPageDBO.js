@@ -48,19 +48,25 @@ class WebPageDBO {
                         createdAtText: DateUtils.aggregate("$createdAt", { timezone }),
                         updatedAtText: DateUtils.aggregate("$updatedAt", { timezone }),
                         createdBy: {
-                            id: "$createdByUser._id",
-                            name: "$createdByUser.name",
-                            email: "$createdByUser.email",
-                            image: {
-                                $concat: [
-                                    Constants.paths.public_url,
-                                    { $ifNull: ['$createdByUser.image', Constants.paths.DEFAULT_USER_IMAGE] },
-                                ],
+                            $cond: {
+                                if: { $gt: ["$createdByUser._id", null] },
+                                then: {
+                                    id: "$createdByUser._id",
+                                    name: "$createdByUser.name",
+                                    email: "$createdByUser.email",
+                                    image: {
+                                        $concat: [
+                                            Constants.paths.public_url,
+                                            { $ifNull: ["$createdByUser.image", Constants.paths.DEFAULT_USER_IMAGE] },
+                                        ],
+                                    },
+                                },
+                                else: "$$REMOVE",
                             },
                         },
                         updatedBy: {
                             $cond: {
-                                if: { $ne: ["$updatedByUser", null] },
+                                if: { $gt: ["$updatedByUser._id", null] },
                                 then: {
                                     id: "$updatedByUser._id",
                                     name: "$updatedByUser.name",
@@ -125,7 +131,7 @@ class WebPageDBO {
     }
 
     getList = async (data, { session = null } = {} = {}) => {
-        return this.query({ session, paginate: true });
+        return this.query({ session, paginate: false });
     }
 
 

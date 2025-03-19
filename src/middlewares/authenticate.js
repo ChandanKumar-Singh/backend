@@ -27,6 +27,7 @@ const verifyToken = (token, req, role) => {
         logg("❌ JWT Verification Failed:", err?.message || "Invalid Token");
         return reject(new ApiError(httpStatus.UNAUTHORIZED, ResponseCodes.ERROR.INVALID_TOKEN, true, null, 0, err));
       }
+      // logg("✅ JWT Decoded:", decoded);
 
       try {
         const redisKey =

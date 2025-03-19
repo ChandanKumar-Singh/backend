@@ -89,6 +89,7 @@ class AuthenticateDBO {
     const userDetails = await UserDBO.getById(tempAuth._id, {
       session: session,
     });
+
     await RedisService.hset(
       Constants.REDIS_KEYS.USER_AUTH,
       tempAuth._id,
@@ -170,6 +171,7 @@ class AuthenticateDBO {
         httpStatus.OK,
         ResponseCodes.USER_ERRORS.USER_ALREADY_EXISTS(contact)
       );
+      
     let user = new UserModel({
       contact,
       country_code,
@@ -177,10 +179,10 @@ class AuthenticateDBO {
       name,
       email,
       role,
-      type,
+      type: Constants.roles.accessLevels.USER,
       status: Constants.USER_STATUS.ACTIVE,
     });
-    await user.save({ session });
+    user = await user.save({ session, new: true });
     await NotificationPreferenceDBO.createUserPreference(user._id, { session });
     if (processAuth) {
       return await this.processAppAuthentication(user, { session: session });
@@ -230,6 +232,9 @@ class AuthenticateDBO {
     { isAdmin = false, session = null } = {}
   ) => {
     const tempAuth = await this.getUser(contact, isAdmin, { session });
+    if (!tempAuth) {
+      throw new ApiError(httpStatus.OK, "Account not found");
+    }
     if (tempAuth && tempAuth.status !== Constants.USER_STATUS.ACTIVE) {
       throw new ApiError(httpStatus.OK, "User Suspended");
     }
@@ -253,14 +258,15 @@ class AuthenticateDBO {
     }
   };
 
-  login = async (data, { session = null } = {}) => {
+  login = async (data, { isAdmin = false, session = null } = {}) => {
     const { username, password } = data;
+    logg("username", username);
     let tempAuth = await this.getUser(username);
     if (!tempAuth) throw new ApiError(httpStatus.OK, "Account not found");
     if (!username.includes("@")) {
       var res = await this.sendOtp(
         username,
-        tempAuth.type === Constants.roles.accessLevels.ADMIN,
+        isAdmin,
         { session: session }
       );
       return res;
@@ -279,7 +285,10 @@ class AuthenticateDBO {
 
     tempAuth.last_login = new Date();
     tempAuth = await tempAuth.save({ session });
-    return await this.processAdminAuthentication(tempAuth, { session: session });
+    if (isAdmin) {
+      return await this.processAdminAuthentication(tempAuth, { session: session });
+    }
+    return await this.processAppAuthentication(tempAuth, { session: session });
   };
 
   getProfile = async (userId) => {

@@ -70,13 +70,11 @@ function handleValidationError(err, res) {
  * @param {Object} res - The response object.
  */
 function handleDuplicateError(err, res) {
-
   loggError(err, 'Duplicate key error occurred');
-
   return res.status(httpStatus.BAD_REQUEST).json(
-    resConv(extractDuplicateErrorMessage(err.errorResponse), 'Already exists', 0, {
-      stackTrace: Constants.IS_PRODUCTION ? null : err.stack, // Hide stack in production
-    })
+    resConv(extractDuplicateErrorMessage(err), 'Already exists', 0,
+      Constants.envs.production ? null : err.stack
+    )
   );
 }
 
@@ -88,11 +86,7 @@ function handleDuplicateError(err, res) {
 function handleUnexpectedError(err, res) {
   loggError(err, 'Unexpected error occurred');
   return res.status(err.status || httpStatus.INTERNAL_SERVER_ERROR).json(
-    resConv(null, 'Internal server error.', 0, {
-      errorDetails: Constants.IS_PRODUCTION ? null : err.stack, // Hide stack in production
-      responseCode: ResponseCodes.SERVER_ERROR,
-      stackTrace: Constants.IS_PRODUCTION ? null : err.stack, // Include stack trace for debugging in dev environments
-    })
+    resConv(err, 'Internal server error.', 0, err, Constants.IS_PRODUCTION ? null : err.stack)
   );
 }
 
@@ -103,7 +97,7 @@ function handleUnexpectedError(err, res) {
  */
 function extractDuplicateErrorMessage(error) {
   // Check if the error is a duplicate key error
-  if (error.code === 11000 && error.errmsg) {
+  if (error.code === 11000) {
     // Extract the key and value from the error message
     const match = error.errmsg.match(/dup key: \{ (.*?) \}/);
     if (match && match[1]) {
@@ -111,6 +105,7 @@ function extractDuplicateErrorMessage(error) {
       const keyValue = match[1];
       const key = keyValue.split(':')[0].trim();
       const value = keyValue.split(':')[1].trim().replace(/"/g, ''); // Remove extra quotes
+      logg(`Duplicate key error: ${key} with ${value} already exists.`);
 
       // Return a formatted string with key and error details
       return `${key.charAt(0).toUpperCase() + key.slice(1)} with ${value} already exists.`;
