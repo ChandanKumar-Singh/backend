@@ -1,7 +1,7 @@
 import UserModel from '../models/UserModel.js'; // Adjust as needed
 import Constants from '../config/constants.js';
 import DateUtils from '../utils/DateUtils.js';
-import { mObj, mongoOne } from '../lib/mongoose.utils.js';
+import { mObj, mongoOne, setUserImage } from '../lib/mongoose.utils.js';
 import { infoLog, logg, logger, LogUtils } from '../utils/logger.js';
 import httpStatus from 'http-status';
 import AuthenticateDBO from './AuthenticateDBO.js';
@@ -105,16 +105,7 @@ class UserDBO {
                 { $sort: sort || { [sortBy]: sortOrder } },
                 { $skip: skip },
                 { $limit: limit },
-                {
-                    $set: {
-                        image: {
-                            $concat: [
-                                Constants.paths.public_url,
-                                { $ifNull: ['$image', Constants.paths.DEFAULT_USER_IMAGE] },
-                            ],
-                        }
-                    }
-                },
+                setUserImage('image'),
                 {
                     $project: {
                         name: 1,
@@ -158,7 +149,6 @@ class UserDBO {
                             preferences: '$notificationPreferences.preferences',
                             deliveryChannels: '$notificationPreferences.deliveryChannels',
                         },
-                        
                         status: 1,
                         isActive: 1,
                         createdAt: 1,
@@ -331,8 +321,9 @@ class UserDBO {
             url: payload.url || null,
             priority: payload.priority || NotificationPriority.NORMAL,
         };
-        return await NotificationService.sendNotification(notificationData);
+        return await NotificationService.sendNotificationToUser(notificationData);
     }
 }
 
 export default new UserDBO();
+

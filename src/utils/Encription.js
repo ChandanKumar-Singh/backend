@@ -1,6 +1,5 @@
 import crypto from "crypto";
-import mongoose from "mongoose";
-const isMongoId = (id) => mongoose.Types.ObjectId.isValid(id);
+import { isMongoId } from "../lib/mongoose.utils.js";
 
 const algorithm = "aes-256-cbc";
 const secretKey = Buffer.from("your-32-character-long-secret-key!");

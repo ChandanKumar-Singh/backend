@@ -1,8 +1,3 @@
-/**
- * Created by charnjeetelectrovese@gmail.com on 11/13/2019.
- * Enhanced by ChatGPT on 2025-03-04.
- */
-
 class EventUtils {
   constructor() {
     this.events = new Map();

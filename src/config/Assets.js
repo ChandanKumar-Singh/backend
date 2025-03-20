@@ -1,7 +1,7 @@
 class Assets {
     // ✅ Dynamic Image Imports
     static images = {
-        logo: Assets.loadImage('logo/android-chrome-512x512.png'),
+        logo: Assets.loadImage('default_user_image.png'),
         // banner: Assets.loadImage('banner/home-banner.jpg'),
     };
 

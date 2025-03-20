@@ -1,6 +1,3 @@
-/**
- * Created by charnjeetelectrovese@gmail.com on 7/14/2020.
- */
 import moment from "moment";
 import Constants from "../config/constants.js";
 const TIME_ZONE_OFFSET = parseFloat(Constants.TIME_ZONE || 5.5); // Default: IST (UTC+5:30)

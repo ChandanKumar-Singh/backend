@@ -115,8 +115,10 @@ const paths = {
     root_public: `${rootPath}/public/`,
     publicKey: "public",
     public_url: `${URL}/public/`,
-    DEFAULT_USER_IMAGE: "default_user_image.jpg",
+    DEFAULT_USER_IMAGE: "default_user_image.png",
+    DEFAULT_NO_IMAGE: "no_image.png",
     DEFAULT_USER_IMAGE_PATH: "user_images/",
+    DEFAULT_SUPPORT_IMAGE_PATH: "support/",
 };
 
 // Device configurations
@@ -151,12 +153,15 @@ const REDIS_KEYS = {
     USER_AUTH: "USER_AUTH",
     USER_DETAILS: "USER_DETAILS",
     NOTIFICATION_PREFERENCE: "NOTIFICATION_PREFERENCE_",
+    TICKET_DETAILS: "TICKET_DETAILS_",
+    TICKET_REPLY_DETAILS: "TICKET_REPLY_DETAILS_",
 };
 
 // Event system
 const EVENT = {
     Enabled: EVENT_ENABLED === "true",
     USER_UPDATE: "USER_UPDATE",
+    TICKET_UPDATE: "TICKET_UPDATE",
 };
 
 // Logging configuration
@@ -164,6 +169,31 @@ const log = {
     LOG_ENABLED: LOG_ENABLED == "true" || false,
     WARNING_ENABLED: WARNING_ENABLED == "true" || false,
     ERROR_ENABLED: ERROR_ENABLED == "true" || false,
+};
+
+const TICKET_STATUS = {
+    OPEN: "OPEN",
+    IN_PROGRESS: "IN_PROGRESS",
+    RESOLVED: "RESOLVED",
+    CLOSED: "CLOSED",
+};
+
+const TICKET_PRIORITY = {
+    LOW: "LOW",
+    MEDIUM: "MEDIUM",
+    HIGH: "HIGH",
+    CRITICAL: "CRITICAL",
+};
+
+const MessageType = {
+    TEXT: "TEXT",
+    IMAGE: "IMAGE",
+    VIDEO: "VIDEO",
+    AUDIO: "AUDIO",
+    LOCATION: "LOCATION",
+    CONTACT: "CONTACT",
+    LINK: "LINK",
+    FILE: "FILE",
 };
 
 // Final Constants Object (Self-contained)
@@ -187,6 +217,9 @@ const Constants = {
     REDIS_KEYS,
     EVENT,
     log,
+    TICKET_STATUS,
+    TICKET_PRIORITY,
+    MessageType,
 };
 
 export default Constants;
