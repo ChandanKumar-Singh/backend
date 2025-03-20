@@ -1,9 +1,52 @@
-/**
- * Created by charnjeetelectrovese@gmail.com on 12/18/2017.
- */
 import mongoose from 'mongoose';
 import { logg } from '../utils/logger.js';
-import { isTypedArray } from 'util/types';
+import Constants from '../config/constants.js';
+
+
+export const isMongoId = (id) => mongoValid(id);
+
+export function setUserImage(field, fName, existKey) {
+    return {
+        $set: {
+            [fName || "image"]: {
+                $cond: {
+                    if: { $gt: [`$${existKey || field}`, null] },
+                    then: {
+                        $concat: [
+                            Constants.paths.public_url,
+                            { $ifNull: [`$${field}`, Constants.paths.DEFAULT_USER_IMAGE] },
+                        ],
+                    },
+                    else: "$REMOVE",
+                },
+            },
+        },
+    };
+}
+
+export function setArrayFilesAggregation(field, fName, defaultImage, existKey) {
+    return {
+        $cond: {
+            if: { $gt: [{ $size: { $ifNull: [`$${existKey || field}`, []] } }, 0] }, 
+            then: {
+                $map: {
+                    input: { $ifNull: [`$${field}`, []] }, 
+                    as: "file", // Fixed alias issue
+                    in: {
+                        $concat: [
+                            Constants.paths.public_url,
+                            { $ifNull: ["$$file", defaultImage || Constants.paths.DEFAULT_NO_IMAGE] },
+                        ],
+                    },
+                },
+            },
+            else: "$REMOVE", // Remove if no images exist
+        },
+    };
+}
+
+
+
 
 export function mongoOne(arr) {
     if (!Array.isArray(arr)) return arr;
@@ -53,12 +96,8 @@ export function mongoValid(id) {
 export const withTransaction = async (callback) => {
     const session = await mongoose.startSession();
     session.startTransaction();
-
     try {
-        // Execute the function and pass the session
         const result = await callback(session);
-
-        // Commit the transaction if successful
         await session.commitTransaction();
         session.endSession();
         return result;
@@ -66,7 +105,7 @@ export const withTransaction = async (callback) => {
         logg('****************************** withTransaction error ******************************');
         await session.abortTransaction();
         session.endSession();
-        throw error; // Rethrow error to be handled by the caller
+        throw error;
     }
 };
 

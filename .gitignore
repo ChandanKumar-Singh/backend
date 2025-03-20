@@ -9,11 +9,10 @@ src/public/downloaded/**/*
 !src/public/downloaded/**/.gitkeep
 src/public/user_images/**/*
 !src/public/user_images/**/.gitkeep
-!src/public/logo/*
-
-
-
-
+src/public/support/**/*
+!src/public/support/**/.gitkeep
+src/public/logo/*
+!src/public/.gitkeep
 .DS_Store
 src/.DS_Store
 rental-room-management-system-firebase-adminsdk-fbsvc-99617f3842.json 09-06-49-729.json

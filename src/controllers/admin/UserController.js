@@ -105,8 +105,8 @@ class UserController {
         EmailService.renderEmailTemplate(res, template, {
             name: "John Doe",
             actionLink: "https://yourplatform.com/get-started",
-            logo: 'http://localhost:3001/public/logo/android-chrome-512x512.png'
-            // http:/localhost:3001/public/logo/android-chrome-512x512.png 
+            logo: 'http://localhost:3001/public/default_user_image.png'
+            // http:/localhost:3001/public/default_user_image.png 
         });
     });
 

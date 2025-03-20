@@ -1,6 +1,3 @@
-/**
- * Created by charnjeetelectrovese@gmail.com on 1/17/2020.
- */
 export  function removeSpace(path) {
     if (path) {
         return path.replace(/ /g, '%20');

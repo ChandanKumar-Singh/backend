@@ -51,3 +51,11 @@ export const phoneValidator = Joi.string()
     .messages({
         "invalidFormat": "Invalid phone format. Must be a valid number (e.g., 123456789)",
     });
+
+export const commonPaginationSchema = {
+    index: Joi.number().optional().default(1),
+    row: Joi.string().optional().default("createdAt"),
+    order: Joi.string().valid("asc", "desc").optional().default("desc"),
+    query: Joi.string().optional().allow("", null),
+    query_data: Joi.array().items(Joi.object()).optional(),
+};

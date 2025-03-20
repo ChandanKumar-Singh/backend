@@ -74,17 +74,15 @@ class QueryUtils {
             switch (type) {
                 case "select":
                     if (Array.isArray(value)) {
-                        dbQuery.push({ [name]: { $in: value.map((val) => String(val)) } });
+                        dbQuery.push({ [name]: { $in: value.map((val) =>this.stringORId(value)) } });
                     } else {
-                        dbQuery.push({ [name]: String(value) });
+                        dbQuery.push({ [name]: this.stringORId(value) });
                     }
                     break;
 
                 case "selectObject":
                     dbQuery.push({
-                        [name]: mongoose.Types.ObjectId.isValid(value)
-                            ? new mongoose.Types.ObjectId(value)
-                            : String(value),
+                        [name]: this.stringORId(value),
                     });
                     break;
 
@@ -199,9 +197,15 @@ class QueryUtils {
             timezone,
         };
 
-        logg("🔍 Query:", data);
+        // logg("🔍 Query:", JSON.stringify(data, null, 2));
         return data;
     };
+
+    stringORId(value) {
+        return mongoose.Types.ObjectId.isValid(value)
+            ? new mongoose.Types.ObjectId(value)
+            : String(value);
+    }
 }
 
 export default new QueryUtils();

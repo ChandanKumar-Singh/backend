@@ -30,7 +30,7 @@ class NotificationService {
    * @param {Object} payload - Notification data.
    * @returns {Promise<Object|null>} - Created notification or null if blocked.
    */
-  static async sendNotification(payload) {
+  static async sendNotificationToUser(payload) {
     try {
       logg("📧 NotificationService.sendNotification payload", payload);
       let {
