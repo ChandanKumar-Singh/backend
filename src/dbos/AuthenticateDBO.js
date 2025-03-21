@@ -10,7 +10,7 @@ import UserModel from "../models/UserModel.js";
 import ResponseCodes from "../config/ResponseCodes.js";
 import AuthenticateUtils from "../lib/AuthenticateUtils.js";
 import { logg } from "../utils/logger.js";
-import { generateVerificationCode, isEmail } from "../utils/Helper.utils.js";
+import { generateVerificationCode, isEmail, isValidEmail } from "../utils/Helper.utils.js";
 import RolesUtil from "../lib/RolesUtil.js";
 import RedisService from "../services/RedisService.js";
 import DeviceInfo from "../models/core/DeviceInfo.js";
@@ -262,7 +262,7 @@ class AuthenticateDBO {
     logg("username", username);
     let tempAuth = await this.getUser(username);
     if (!tempAuth) throw new ApiError(httpStatus.OK, "Account not found");
-    if (!username.includes("@")) {
+    if (data.provider && data.provider === Constants.AUTH_PROVIDERS.PHONE) {
       var res = await this.sendOtp(
         username,
         isAdmin,
@@ -332,17 +332,23 @@ class AuthenticateDBO {
     const user = await this.getUser(code);
     if (user) {
       user.generatePasswordReset();
-      logg("user", user);
       await user.save({ session })
-      let email = user.official_email || user.personal_email;
-      if (email && isEmail(email)) {
-        EmailUtils.sendForgotPasswordEmail(
+      let email = user.email;
+      let contact = user.country_code + " " + user.contact;
+      if (email && isValidEmail(email)) {
+        EmailService.sendForgotPasswordEmail(
           email,
-          user.name,
-          user.resetPasswordToken
+          {
+            name: user.name,
+            resetPasswordToken: user.resetPasswordToken
+          }
         );
       } else {
-        return await this.sendOtp(user.contact, false, { session: session });
+        if (contact && contact.length > 0) {
+          return await this.sendOtp(contact, false, { session: session });
+        } else {
+          throw new ApiError(httpStatus.OK, "Recovey method not found");
+        }
       }
     }
   }
@@ -383,7 +389,7 @@ class AuthenticateDBO {
         official_email: val.official_email,
         personal_email: val.personal_email,
       });
-      if (email && isEmail(email)) {
+      if (email && isValidEmail(email)) {
         LogUtils.log("email", email, val.name);
         // await EmailUtils.sendWelcomEmailToEmployees(val.name, email);
         // await EmailUtils.sendWelcomEmailToEmployees('ashu', 'charanjeet@electrovese.com');

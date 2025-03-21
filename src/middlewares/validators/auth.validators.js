@@ -1,47 +1,80 @@
 import Constants from '../../config/constants.js';
-
 import Joi from "joi";
-import { logg } from '../../utils/logger.js';
 import { emailValidator, phoneValidator } from './common.validators.js';
-
+import { logg } from '../../utils/logger.js';
 
 
 export const login = {
   body: {
+    provider: Joi.string()
+      .required()
+      .valid(...Object.values(Constants.AUTH_PROVIDERS))
+      .messages({
+        "any.required": "Provider is required",
+        "any.only": "Invalid authentication provider",
+      }),
+
     username: Joi.string()
       .trim()
       .required()
-      .custom((value, helpers) => {
-        // Check if the input is an email
-        if (value.includes("@")) {
-          const { error } = emailValidator.validate(value);
-          if (error) return helpers.error("username.email");
-          return value;
-        }
+      .when("provider", [
+        {
+          is: Constants.AUTH_PROVIDERS.EMAIL,
+          then: Joi.string()
+            .trim()
+            .required()
+            .custom((value, helpers) => {
+              const { error } = emailValidator.validate(value);
+              if (error) return helpers.error("username.email");
+              return value;
+            })
+            .messages({
+              "any.required": "Email is required for email login",
+              "username.email": "Invalid email format",
+            }),
+        },
+        {
+          is: Constants.AUTH_PROVIDERS.PHONE,
+          then: Joi.string()
+            .trim()
+            .required()
+            .custom((value, helpers) => {
+              const { error } = phoneValidator.validate(value);
+              if (error) return helpers.message(phoneError.details[0].message);
+              return value;
+            })
+            .messages({
+              "any.required": "Phone number is required for phone login",
+              "string.pattern.base": "Invalid phone number format",
+            }),
+        },
+      ]),
 
-        // Validate phone number (with country code)
-        const { error: phoneError } = phoneValidator.validate(value);
-        if (phoneError) return helpers.message(phoneError.details[0].message);
-
-        return value;
-      })
-      .messages({
-        "any.required": "Username field is required",
-        "username.email": "Invalid email address",
+    password: Joi.when("provider", {
+      is: Constants.AUTH_PROVIDERS.EMAIL,
+      then: Joi.string().required().messages({
+        "any.required": "Password is required.",
       }),
+      otherwise: Joi.forbidden(), // Disallow password for phone & social logins
+    }),
 
-    password: Joi.string()
-      .when("username", {
-        is: emailValidator,
-        then: Joi.string().required().messages({
-          "any.required": "Password is required.",
-        }),
-      })
-      .messages({
-        "string.empty": "Password cannot be empty",
+    accessToken: Joi.when("provider", {
+      is: Joi.valid(
+        Constants.AUTH_PROVIDERS.GOOGLE,
+        Constants.AUTH_PROVIDERS.APPLE,
+        Constants.AUTH_PROVIDERS.FACEBOOK,
+        Constants.AUTH_PROVIDERS.GITHUB,
+        Constants.AUTH_PROVIDERS.LINKEDIN,
+        Constants.AUTH_PROVIDERS.TWITTER
+      ),
+      then: Joi.string().required().messages({
+        "any.required": "Access token is required.",
       }),
+      otherwise: Joi.forbidden(), // Disallow accessToken for email & phone logins
+    }),
   },
 };
+
 
 export const loginSchema = {
   body: {
@@ -102,6 +135,14 @@ export const sendOTP = {
 
 export const verifyOTP = {
   body: {
+    provider: Joi.string()
+      .required()
+      .valid(...Object.values(Constants.AUTH_PROVIDERS))
+      .messages({
+        "any.required": "Provider is required",
+        "any.only": "Invalid authentication provider",
+      }),
+
     username: Joi.string()
       .trim()
       .required()
@@ -121,9 +162,15 @@ export const verifyOTP = {
         "any.required": "Username field is required",
         "email": "Invalid email address",
       }),
-    otp: Joi.string().required().length(6).messages({
-      "string.length": "OTP must be 6 characters long",
+
+    otp: Joi.when("provider", {
+      is: Constants.AUTH_PROVIDERS.PHONE,
+      then: Joi.string().required().messages({
+        "any.required": "OTP is required.",
+      }),
+      otherwise: Joi.forbidden(), // Disallow OTP for email & social logins
     }),
+
   }
 };
 

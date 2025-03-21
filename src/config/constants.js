@@ -65,6 +65,18 @@ const security = {
     saltRounds: Number(SALT_ROUNDS) || 12,
 };
 
+// Authentication providers
+const AUTH_PROVIDERS = {
+    EMAIL: "EMAIL",
+    GOOGLE: "GOOGLE",
+    PHONE: "PHONE",
+    APPLE: "APPLE",
+    FACEBOOK: "FACEBOOK",
+    GITHUB: "GITHUB",
+    LINKEDIN: "LINKEDIN",
+    TWITTER: "TWITTER",
+};
+
 // Role-based configurations
 const roles = {
     accessLevels: {
@@ -203,6 +215,7 @@ const Constants = {
     envs,
     routes,
     security,
+    AUTH_PROVIDERS,
     roles,
     USER_STATUS,
     pageStatus,

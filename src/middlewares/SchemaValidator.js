@@ -43,7 +43,8 @@ const SchemaValidator = (schema) => async (req, res, next) => {
         true,
         null,
         0,
-        errors
+        errors,
+        "VALIDATION_FAILED",
       );
       return res
         .status(httpStatus.BAD_REQUEST)

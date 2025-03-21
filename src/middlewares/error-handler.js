@@ -59,7 +59,7 @@ function handleValidationError(err, res) {
   loggError(err, 'Validation error occurred');
   return res.status(httpStatus.BAD_REQUEST).json(
     resConv(err.error, 'Validation failed.', 0,
-      Constants.envs.production ? null : err.stack,
+      Constants.envs.production ? null : err.stack, err.errorCode || ResponseCodes.ERROR
     )
   );
 }
@@ -130,6 +130,6 @@ function loggError(err, reason) {
       stack: err.stack,
     });
   } else {
-    console.error(err)
+    console.error(err, reason)
   }
 }
