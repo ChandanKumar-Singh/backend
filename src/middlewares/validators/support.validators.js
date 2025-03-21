@@ -1,6 +1,6 @@
 import Joi from "joi";
 import Constants from "../../config/constants.js";
-import { commonPaginationSchema } from "./common_schemas.js";
+import { commonPaginationSchema } from "./common.validators.js";
 import { isMongoId } from "../../lib/mongoose.utils.js";
 
 const { TICKET_STATUS, TICKET_PRIORITY } = Constants;

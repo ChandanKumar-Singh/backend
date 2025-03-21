@@ -1,5 +1,5 @@
 import Joi from "joi";
-import { customCountryPhoneValidator, emailValidator, phoneValidator } from "./common_schemas.js";
+import { customCountryPhoneValidator, emailValidator, phoneValidator } from "./common.validators.js";
 
 
 const general = Joi.object({

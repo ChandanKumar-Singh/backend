@@ -6,13 +6,13 @@ export default {
             file: "UserJobs",
             name: "cleanInactiveUsers",
             schedule: CronSchedules.every10Minutes,
-            enabled: true,
+            enabled: false,
         },
         {
             file: "UserJobs",
             name: "sendBirthdayEmails",
             schedule: CronSchedules.every30Minutes,
-            enabled: true,
+            enabled: false,
         },
         {
             file: "ReportJobs",
