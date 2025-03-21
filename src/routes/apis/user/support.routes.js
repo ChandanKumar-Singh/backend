@@ -1,7 +1,7 @@
 import express from "express";
 import { UserMiddleware } from "../../../middlewares/authenticate.js";
 import SchemaValidator from "../../../middlewares/SchemaValidator.js";
-import SupportScheme from "../../../middlewares/validators/support.validator.js";
+import SupportScheme from "../../../middlewares/validators/support.validators.js";
 import SupportController from "../../../controllers/SupportController.js";
 
 const router = express.Router();

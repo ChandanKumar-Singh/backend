@@ -2,7 +2,7 @@ import Constants from '../../config/constants.js';
 
 import Joi from "joi";
 import { logg } from '../../utils/logger.js';
-import { emailValidator, phoneValidator } from './common_schemas.js';
+import { emailValidator, phoneValidator } from './common.validators.js';
 
 
 

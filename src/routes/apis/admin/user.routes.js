@@ -3,8 +3,8 @@ import { AdminMiddleware } from '../../../middlewares/authenticate.js';
 import UserController from '../../../controllers/admin/UserController.js';
 import { assignQueryAndParamsToBody } from '../../../middlewares/index.js';
 import SchemaValidator from '../../../middlewares/SchemaValidator.js';
-import * as UserSchema from '../../../middlewares/validators/user.schema.js';
-import * as DeviceSchema from '../../../middlewares/validators/device.scheme.js';
+import * as UserSchema from '../../../middlewares/validators/user.validators.js';
+import * as DeviceSchema from '../../../middlewares/validators/device.validators.js';
 import DeviceController from '../../../controllers/admin/DeviceController.js';
 
 

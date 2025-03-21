@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import * as AuthSchema from '../../../middlewares/validators/auth.schema.js';
+import * as AuthSchema from '../../../middlewares/validators/auth.validators.js';
 import SchemaValidator from '../../../middlewares/SchemaValidator.js';
 import { AdminMiddleware } from '../../../middlewares/authenticate.js';
 import AdminController from '../../../controllers/admin/AdminController.js';

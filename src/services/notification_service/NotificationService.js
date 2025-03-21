@@ -1,4 +1,3 @@
-import Constants from "../../config/constants.js";
 import {
   DeliveryChannel,
   NotificationCodes,
@@ -6,7 +5,6 @@ import {
 } from "../../config/NotificationEnums.js";
 import Notification from "../../models/core/notification/Notification.js";
 import EmailService from "../EmailService.js";
-import RedisService from "../RedisService.js";
 import SmsService from "../SmsService.js";
 import PushService from "./PushService.js";
 import ApiError from "../../middlewares/ApiError.js";
@@ -19,8 +17,6 @@ import {
   errorLog,
   infoLog,
   logg,
-  logger,
-  LogUtils,
 } from "../../utils/logger.js";
 import NotificationPreferenceDBO from "../../dbos/notification/NotificationPreferenceDBO.js";
 
