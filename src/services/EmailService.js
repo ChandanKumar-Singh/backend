@@ -7,7 +7,7 @@ import Constants from "../config/constants.js";
 
 class EmailService {
     async sendEmailNotification(userId, subject, message) {
-        consolslogg(`📧 Sending Email to ${userId}: ${subject}`);
+        logg(`📧 Sending Email to ${userId}: ${subject} : ${message}`);
         // Use Nodemailer or an email provider like SendGrid
     }
 
@@ -15,6 +15,12 @@ class EmailService {
         const subject = 'Welcome to our Platform!';
         const message = 'You have successfully registered on our platform. Welcome aboard!';
 
+    }
+
+    sendForgotPasswordEmail = async (userId, payload) => {
+        const subject = 'Forgot Password Request';
+        const message = `Your verification code is ${payload.resetPasswordToken}`;
+        this.sendEmailNotification(userId, subject, message);
     }
     /**
      * Renders an email template directly in the browser.

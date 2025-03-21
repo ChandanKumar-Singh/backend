@@ -17,7 +17,11 @@ export const generateVerificationCode = (len) => {
 }
 
 export const isEmail = (email) => {
-  var regEx = new RegExp(r = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/);
+  return email && email.includes("@");
+}
+
+export const isValidEmail = (email) => {
+  var regEx = new RegExp(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/);
   return regEx.test(email);
 }
 
