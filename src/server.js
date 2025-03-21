@@ -12,13 +12,16 @@ import Constants from './config/constants.js';
 import RedisService from './services/RedisService.js';
 import CronManager from './cron/CronManager.js';
 import './core/firebase.js';
+import { logger } from './utils/logger.js';
 const app = express();
 
 app.use(cors());
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));
 
-app.use(morgan('dev'));
+app.use(morgan('dev', {
+    stream: { write: (message) => logger.info(message.trim()) },
+}));
 app.use(compression());
 app.use(helmet());
 app.use(expressvalidator.check());
@@ -31,7 +34,8 @@ const PORT = process.env.PORT || 3000;
 // Connect to database
 connectDB();
 
-// app.use(assignQueryAndParamsToBody);
+
+
 app.use('/', routes);
 app.get('/', (req, res) => {
     res.send('Welcome to a hybrid Node.js project with both require & import!');
