@@ -5,7 +5,7 @@ import { errorLog, greenLog, infoLog, logg, logger, warnLog } from '../utils/log
 
 class RedisService {
     constructor() {
-        this.REDIS_KEY = Constants.Redis.KEY || '';
+        this.REDIS_KEY = (Constants.Redis.KEY || '') + ':';
         this.ENABLED = Constants.Redis.Enabled || false;
         if (this.ENABLED) {
             this.client = createClient({ url: `redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT}` });
@@ -47,7 +47,7 @@ class RedisService {
         if (!this.ENABLED) return null;
         try {
             let res = await this.client.hGet(this.REDIS_KEY + hashKey, field?.toString());
-            // warnLog('Getting redis field:', this.REDIS_KEY + hashKey, field, res);
+            // warnLog('Getting redis field:', this.REDIS_KEY + hashKey, field?.toString(), res);
             return decode ? JSON.parse(res) : res;
         } catch (err) {
             errorLog('❌ Redis HGET Error:', err);

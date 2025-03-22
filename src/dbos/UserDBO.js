@@ -15,6 +15,7 @@ import ApiError from '../middlewares/ApiError.js';
 import NotificationMessages from '../config/notificationMessages.js';
 import ResponseCodes from '../config/ResponseCodes.js';
 import QueryUtils from '../lib/QueryUtils.js';
+import RedisKeys from '../lib/RedisKeys.js';
 
 class UserDBO {
     constructor() {
@@ -201,8 +202,7 @@ class UserDBO {
     }
 
     getById = async (id, { session = null, shouldForce = false } = {}) => {
-        const redisKey = Constants.REDIS_KEYS.USER_DETAILS;
-        const redisData = await RedisService.hget(redisKey, mObj(id));
+        const redisData = await RedisService.hget(...RedisKeys.USER_DETAILS(id));
         if (redisData && !shouldForce) {
             return redisData;
         } else {
@@ -210,7 +210,7 @@ class UserDBO {
                 await this.fetchUsers({ query: [{ $match: { _id: mObj(id) } }], session })
             );
             if (obj) {
-                RedisService.hset(redisKey, id, obj);
+                RedisService.hset(...RedisKeys.USER_DETAILS(id), obj);
                 return obj;
             }
             return null;
@@ -299,8 +299,7 @@ class UserDBO {
          /// user data basis dispatches
         } */
         await RedisService.hdel(
-            Constants.REDIS_KEYS.USER_DETAILS,
-            userId.toString()
+            ...RedisKeys.USER_DETAILS(userId)
         );
     };
 

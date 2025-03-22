@@ -10,6 +10,7 @@ import { logg, warnLog } from "../utils/logger.js";
 import httpStatus from "http-status";
 import RedisService from "../services/RedisService.js";
 import ApiError from "./ApiError.js";
+import RedisKeys from "../lib/RedisKeys.js";
 
 const { sessionSecret } = Constants.security;
 
@@ -30,18 +31,14 @@ const verifyToken = (token, req, role) => {
       // logg("✅ JWT Decoded:", decoded);
 
       try {
-        const redisKey =
-          role === Constants.roles.accessLevels.ADMIN
-            ? Constants.REDIS_KEYS.ADMIN_AUTH
-            : Constants.REDIS_KEYS.USER_AUTH;
         req.user = decoded;
         req.sender_id = decoded.id;
 
         if (Constants.Redis.Enabled === true) {
           // logg("🔍 Fetching Redis Data:", Constants.Redis.Enabled);
-          const data = await RedisService.hget(redisKey, decoded.id);
+          const data = await RedisService.hget(...RedisKeys.AuthKey(role, decoded.id));
           const decodedData = data;
-          // warnLog("Decoded JWT:", decoded, role);
+          // warnLog("Decoded JWT:", decoded, role , data);
           // warnLog("Decoded Redis Data:", decodedData);
           if (!decodedData || decodedData.uniquekey !== decoded.uniquekey) {
             return reject(new ApiError(httpStatus.UNAUTHORIZED, ResponseCodes.AUTH_ERRORS.SESSION_EXPIRED, true, null, 0, err));
@@ -68,7 +65,7 @@ const verifyToken = (token, req, role) => {
 const authenticate = (role) => async (req, res, next) => {
   try {
     const { authorization } = req.headers;
-    if (!Constants.envs.production) logg("🔐 Authorization Header:", authorization);
+    // if (!Constants.envs.production) logg("🔐 Authorization Header:", authorization);
 
     if (!authorization || !authorization.startsWith("Bearer ")) {
       return res
@@ -80,7 +77,7 @@ const authenticate = (role) => async (req, res, next) => {
     await verifyToken(token, req, role);
 
     req.sender = Constants.roles.accessLevels[role] || "UNKNOWN_ROLE";
-    if (!Constants.envs.production) logg(`✅ User Authenticated: Role=${req.sender}, ID=${req.user?.id || "N/A"}`);
+    // if (!Constants.envs.production) logg(`✅ User Authenticated: Role=${req.sender}, ID=${req.user?.id || "N/A"}`);
     next();
   } catch (error) {
     return res
