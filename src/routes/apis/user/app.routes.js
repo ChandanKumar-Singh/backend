@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { assignQueryAndParamsToBody } from '../../../middlewares/index.js';
 import AppSettingsController from '../../../controllers/app/AppSettingsController.js';
 import { UserMiddleware } from '../../../middlewares/authenticate.js';
-import PageController from '../../../controllers/admin/pageController.js';
+import PageController from '../../../controllers/admin/PageController.js';
 const router = Router();
 
 router.get('/settings', assignQueryAndParamsToBody, UserMiddleware, AppSettingsController.detail);

@@ -1,6 +1,6 @@
 
 import express from "express";
-import PageController from "../../../controllers/admin/pageController.js";
+import PageController from "../../../controllers/admin/PageController.js";
 import * as WebSchema from "../../../middlewares/validators/page.validators.js";
 import { AdminMiddleware } from "../../../middlewares/authenticate.js";
 import SchemaValidator from "../../../middlewares/SchemaValidator.js";

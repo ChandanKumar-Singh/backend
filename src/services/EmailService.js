@@ -31,7 +31,6 @@ class EmailService {
     renderEmailTemplate = async (res, template, templateData = {}) => {
         try {
             const templatePath = path.join(Constants.paths.root_public, "views/templates", `${template}.ejs`);
-            logg(templatePath)
             if (!fs.existsSync(templatePath)) {
                 return res.status(404).send("Template not found.");
             }

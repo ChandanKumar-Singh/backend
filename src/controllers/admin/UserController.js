@@ -101,7 +101,6 @@ class UserController {
 
     sendMail = catchAsync(async (req, res) => {
         const { template } = req.body;
-        logg(Constants.paths)
         EmailService.renderEmailTemplate(res, template, {
             name: "John Doe",
             actionLink: "https://yourplatform.com/get-started",

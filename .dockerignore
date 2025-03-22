@@ -1,0 +1,17 @@
+**/.DS_Store
+node_modules/
+logs/
+
+# Ignore all files inside any folder from public/
+!public/.gitkeep
+src/public/downloaded/**/*
+!src/public/downloaded/**/.gitkeep
+src/public/user_images/**/*
+!src/public/user_images/**/.gitkeep
+src/public/support/**/*
+!src/public/support/**/.gitkeep
+src/public/logo/*
+!src/public/.gitkeep
+.DS_Store
+src/.DS_Store
+
