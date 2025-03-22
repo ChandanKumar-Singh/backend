@@ -55,19 +55,7 @@ const notificationPreferenceSchema = new mongoose.Schema(
  * @returns {Promise<Object>} - The created or existing notification preference
  */
 notificationPreferenceSchema.statics.createDefaultPreferences = async function (userId, preferences = {}, deliveryChannels = [], { session = null } = {}) {
-    let obj = await this.findOne({ user: userId });
-    if (!obj) {
-        const [created] = await this.create(
-            [
-                {
-                    user: userId,
-                }
-            ],
-            { session }
-        );
-        obj = created;
-    }
-    return obj;
+    return await this.create([{ user: userId }], { session });
 };
 
 

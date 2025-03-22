@@ -105,7 +105,7 @@ class NotificationPreferenceDBO {
             deliveryChannels,
             { session }
         );
-        // obj = await this.fetchNotificationPreferenceById(userId, { session });
+        obj = await this.fetchNotificationPreferenceById(userId, { session });
         this.cacheUserPreference(userId, obj);
         logg(`Notification preferences updated for user: ${userId}`, obj);
         return obj;
