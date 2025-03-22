@@ -2,7 +2,6 @@ import CronSchedules from "../lib/CronJobsTime.js";
 import UserJobs from "./jobs/UserJobs.js";
 import ReportJobs from "./jobs/ReportJobs.js";
 
-
 export default {
     jobs: [
         {
