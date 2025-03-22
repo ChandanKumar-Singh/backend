@@ -21,6 +21,7 @@ import {
 } from "../config/NotificationEnums.js";
 import { SupportTicket, TicketResponse } from "../models/support.model.js";
 import { createDateId } from "../utils/Helper.utils.js";
+import RedisKeys from "../lib/RedisKeys.js";
 
 class SupportDBO {
     constructor() {
@@ -322,8 +323,7 @@ class SupportDBO {
     };
 
     getById = async (id, { session = null, shouldForce = false } = {}) => {
-        const redisKey = Constants.REDIS_KEYS.TICKET_DETAILS;
-        const redisData = await RedisService.hget(redisKey, mObj(id));
+        const redisData = await RedisService.hget(...RedisKeys.TICKET_DETAILS(id));
         if (redisData && !shouldForce) {
             return redisData;
         } else {
@@ -334,7 +334,7 @@ class SupportDBO {
                 })
             );
             if (obj) {
-                RedisService.hset(redisKey, id, obj);
+                RedisService.hset(...RedisKeys.TICKET_DETAILS(id), obj);
                 return obj;
             }
             return null;
@@ -342,8 +342,7 @@ class SupportDBO {
     };
 
     getReplyById = async (id, { session = null, shouldForce = false } = {}) => {
-        const redisKey = Constants.REDIS_KEYS.TICKET_REPLY_DETAILS;
-        const redisData = await RedisService.hget(redisKey, id);
+        const redisData = await RedisService.hget(...RedisKeys.TICKET_REPLY_DETAILS(id));
         if (redisData && !shouldForce) {
             return redisData;
         } else {
@@ -354,7 +353,7 @@ class SupportDBO {
                 })
             );
             if (obj) {
-                RedisService.hset(redisKey, id, obj);
+                RedisService.hset(...RedisKeys.TICKET_REPLY_DETAILS(id), obj);
                 return obj;
             }
             return null;
@@ -419,10 +418,7 @@ class SupportDBO {
 
     purgeCache = async (ticketId) => {
         if (!ticketId) return;
-        await RedisService.hdel(
-            Constants.REDIS_KEYS.TICKET_DETAILS,
-            ticketId.toString()
-        );
+        await RedisService.hdel(...RedisKeys.TICKET_DETAILS(ticketId));
     };
 
     sendTicketNotification = async (ticketId, payload) => {

@@ -1,5 +1,6 @@
 import Constants from "../../config/constants.js";
 import { mObj, mongoOne } from "../../lib/mongoose.utils.js";
+import RedisKeys from "../../lib/RedisKeys.js";
 import NotificationPreference from "../../models/core/notification/NotificationPreference.js";
 import EventService from "../../services/EventService.js";
 import RedisService from "../../services/RedisService.js";
@@ -82,10 +83,7 @@ class NotificationPreferenceDBO {
     }
 
     async fetchNotificationPreferenceById(userId, { session = null } = {}) {
-        const redisData = await RedisService.hget(
-            Constants.REDIS_KEYS.NOTIFICATION_PREFERENCE,
-            userId
-        );
+        const redisData = await RedisService.hget(...RedisKeys.NOTIFICATION_PREFERENCE(userId));
         if (redisData) return redisData;
         let obj = mongoOne(
             await this.query({ query: [{ $match: { user: mObj(userId) } }], session })
@@ -153,18 +151,14 @@ class NotificationPreferenceDBO {
      * @param {Object} data - Notification preference data.
      */
     cacheUserPreference(userId, data) {
-        RedisService.hset(
-            Constants.REDIS_KEYS.NOTIFICATION_PREFERENCE,
-            userId,
-            data
-        );
+        RedisService.hset(...RedisKeys.NOTIFICATION_PREFERENCE(userId), data);  
     }
     emitUpdateEvent(userId) {
         EventService.emit(Constants.EVENT.NOTIFICATION_PREFERENCE_UPDATE, userId);
     }
 
     purgeCache(userId) {
-        RedisService.hdel(Constants.REDIS_KEYS.NOTIFICATION_PREFERENCE, userId);
+        RedisService.hdel(...RedisKeys.NOTIFICATION_PREFERENCE(userId));
     }
 }
 
