@@ -184,10 +184,6 @@ class UserDBO {
                 limit,
                 pages: Math.ceil(total / limit),
                 users,
-                query,
-                midQuery,
-                timezone,
-                countFilter,
             };
 
         } catch (error) {
