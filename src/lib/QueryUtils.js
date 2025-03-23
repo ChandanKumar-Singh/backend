@@ -17,7 +17,8 @@ class QueryUtils {
         {
             query = "",
             query_data = [],
-            index = 1,
+            page = 1,
+            limit = 15,
             row = "createdAt",
             order = "asc",
             timezone = Constants.TIME_ZONE_NAME,
@@ -26,7 +27,7 @@ class QueryUtils {
         regexFields = []
     ) => {
         const sort = { [row]: order === "desc" ? -1 : 1 };
-        const page = parseInt(index) > 1 ? parseInt(index) - 1 : 1;
+        const dbQuery = [];
 
         // ✅ Global Text Search (`query`)
         if (
@@ -37,28 +38,28 @@ class QueryUtils {
             const regexQueryArr = regexFields
                 .filter((field) => field) // Ensure valid field names
                 .map((field) => ({
-                    [field]: { $regex: query, $options: "i" },
+                    [field]: { $regex: query.trim(), $options: "i" },
                 }));
             console.log("🔍", regexQueryArr);
             if (regexQueryArr.length > 0) dbQuery.push({ $or: regexQueryArr });
         }
-        if (!Array.isArray(query_data) || query_data.length === 0) {
+        /* if (!Array.isArray(query_data) || query_data.length === 0) {
             return {
                 isSearch: query.trim().length > 0,
                 page,
+                limit,
                 midQuery: [],
                 query: [],
                 sort,
                 timezone,
             };
-        }
+        } */
 
-        const dbQuery = [];
         let fromDate = null,
             toDate = null;
 
         query_data.forEach(({ name, value, type, operator }) => {
-            if (!name || value === undefined || value === null) return;
+            if (!name || value === undefined || value === null || value === "") return;
 
             // 🚨 Prevent NoSQL Injection: Validate field names
             if (allowedFields.size > 0 && !allowedFields.has(name)) {
@@ -191,13 +192,14 @@ class QueryUtils {
         let data = {
             isSearch: query.trim().length > 0,
             page,
+            limit,
             midQuery: [],
             query: [{ $match: fQuery }],
             sort,
             timezone,
         };
 
-        // logg("🔍 Query:", JSON.stringify(data, null, 2));
+        logg("🔍 Query:", JSON.stringify(data, null, 2));
         return data;
     };
 

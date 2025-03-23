@@ -1,4 +1,5 @@
 import Joi from 'joi';
+import Constants from '../../config/constants.js';
 
 const crudSchema = (isRequired = false) => {
     return {
@@ -8,7 +9,9 @@ const crudSchema = (isRequired = false) => {
         email: Joi.string().optional().allow('', null),
         type: isRequired ? Joi.string().required() : Joi.string().optional().allow('', null),
         image: Joi.string().optional().allow('', null),
-        status: Joi.string().optional().allow('', null),
+        status: Joi.string().optional().allow('', null).valid(...Object.keys(Constants.USER_STATUS)).messages({
+            'any.only': `Status must be one of: ${Object.keys(Constants.USER_STATUS).join(', ')}.`,
+        }),
         role: Joi.string().optional().allow('', null),
         country_code: Joi.string().optional().allow('', null),
     };
