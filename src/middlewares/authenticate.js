@@ -40,7 +40,7 @@ const verifyToken = (token, req, role) => {
           const decodedData = data;
           // warnLog("Decoded JWT:", decoded, role , data);
           // warnLog("Decoded Redis Data:", decodedData);
-          if (!decodedData || decodedData.uniquekey !== decoded.uniquekey) {
+          if (!decodedData || decodedData.id !== decoded.id) {
             return reject(new ApiError(httpStatus.UNAUTHORIZED, ResponseCodes.AUTH_ERRORS.SESSION_EXPIRED, true, null, 0, err));
           }
           req.user = decodedData;
@@ -65,8 +65,7 @@ const verifyToken = (token, req, role) => {
 const authenticate = (role) => async (req, res, next) => {
   try {
     const { authorization } = req.headers;
-    // if (!Constants.envs.production) logg("🔐 Authorization Header:", authorization);
-
+    if (!Constants.envs.production) logg("🔐 Authorization Header:", authorization);
     if (!authorization || !authorization.startsWith("Bearer ")) {
       return res
         .status(httpStatus.UNAUTHORIZED)

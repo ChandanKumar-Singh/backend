@@ -247,6 +247,7 @@ class AuthenticateDBO {
     }
 
     tempAuth.last_login = new Date();
+    logg("tempAuth", tempAuth.last_login);
     tempAuth.otp = Date.now();
     await tempAuth.save({ session }).then(() => { });
     if (isAdmin) {

@@ -38,7 +38,7 @@ const SchemaValidator = (schema) => async (req, res, next) => {
         })
         .join("; ");
       throw new ApiError(
-        httpStatus.INTERNAL_SERVER_ERROR,
+        httpStatus.BAD_REQUEST,
         ResponseCodes.ERROR.VALIDATION_FAILED,
         true,
         null,

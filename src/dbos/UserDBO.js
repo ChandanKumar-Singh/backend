@@ -152,6 +152,7 @@ class UserDBO {
                         },
                         status: 1,
                         isActive: 1,
+                        last_login: 1,
                         createdAt: 1,
                         updatedAt: 1,
                         approvedOnText: 1,
@@ -214,11 +215,9 @@ class UserDBO {
     };
 
     getList = async (data = {}, { session = null } = {}) => {
-        // const allowedFields = new Set(["status", "createdAt", "category", "price", "user", "email", "username"]);
-        // const regexFields = ["email", "username", "fullName"];
-        let { timezone, sort, midQuery, query, page } = QueryUtils.buildQuery(data, [], []);
-        query = [...query, { $match: { type: Constants.roles.accessLevels.USER } }];
-        return await this.fetchUsers({ query, midQuery, timezone, sort, page, session, paginate: true });
+        const builder = QueryUtils.buildQuery(data, [], ['name', 'email', 'contact']);
+        // const query = [{ $match: { type: Constants.roles.accessLevels.USER } }];
+        return await this.fetchUsers({ ...builder, session, paginate: true });
     };
 
     create = async (data, { session }) => {

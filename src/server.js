@@ -15,7 +15,12 @@ import './core/firebase.js';
 import { logger } from './utils/logger.js';
 const app = express();
 
-app.use(cors());
+app.use(cors({
+    origin: "http://localhost:3002",
+    credentials: true, 
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }));
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));
 
