@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title><%= appName %> API Server</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: "Inter", sans-serif;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #4f46e5, #14b8a6);
+        color: white;
+        text-align: center;
+        padding: 1rem;
+      }
+
+      .container {
+        max-width: 720px;
+        padding: 3rem 2.5rem;
+        background-color: rgba(255, 255, 255, 0.07);
+        border-radius: 20px;
+        backdrop-filter: blur(14px);
+        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.35);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      h1 {
+        font-weight: 800;
+        font-size: 3.5rem;
+        margin-bottom: 0.4rem;
+        letter-spacing: 1.5px;
+      }
+
+      .subtitle {
+        font-size: 1.5rem;
+        font-weight: 500;
+        margin-bottom: 1.8rem;
+        color: rgba(255, 255, 255, 0.9);
+      }
+
+      .info-list {
+        list-style: none;
+        padding: 0;
+        margin: 0 auto;
+        max-width: 360px;
+        text-align: left;
+      }
+
+      .info-list li {
+        margin-bottom: 0.85rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        display: flex;
+        justify-content: space-between;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+        padding-bottom: 0.3rem;
+      }
+
+      .info-label {
+        color: rgba(255, 255, 255, 0.7);
+        font-weight: 400;
+      }
+
+      .badge {
+        display: inline-block;
+        margin-top: 2.2rem;
+        padding: 0.7rem 1.3rem;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        font-size: 1.1rem;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        user-select: none;
+      }
+
+      @media (max-width: 480px) {
+        h1 {
+          font-size: 2.6rem;
+        }
+        .subtitle {
+          font-size: 1.2rem;
+        }
+        .info-list {
+          max-width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container" role="main" aria-label="Welcome page">
+      <% if (typeof appName !== 'undefined' && appName) { %>
+      <h1>Welcome to <%= appName %></h1>
+      <% } %> <% if (typeof appDescription !== 'undefined' &&appDescription) {
+      %>
+      <p class="subtitle"><%= appDescription %></p>
+      <% } %>
+
+      <ul class="info-list" aria-live="polite">
+        <% if (typeof appVersion !== 'undefined' &&appVersion) { %>
+        <li>
+          <span class="info-label">Version</span> <span><%= appVersion %></span>
+        </li>
+        <% } %> <% if (typeof appAuthor !== 'undefined' &&appAuthor) { %>
+        <li>
+          <span class="info-label">Author</span> <span><%= appAuthor %></span>
+        </li>
+        <% } %> <% if (typeof apiVersion !== 'undefined' &&apiVersion) { %>
+        <li>
+          <span class="info-label">API Base Path</span>
+          <span><%= apiVersion %></span>
+        </li>
+        <% } %> <% if (typeof port !== 'undefined' && port) { %>
+        <li>
+          <span class="info-label">Server Port</span> <span><%= port %></span>
+        </li>
+        <% } %>
+
+        <li>
+          <span class="info-label">Status</span>
+          <span style="color: #22c55e; font-weight: 800">Online &#9679;</span>
+        </li>
+      </ul>
+
+      <div class="badge">API Server is running smoothly!</div>
+
+      <% if (typeof showFlutterAppLink !== 'undefined' &&showFlutterAppLink) {
+      %>
+      <a
+        href="/app"
+        target="_blank"
+        class="badge"
+        style="text-decoration: none"
+      >
+        APP
+      </a>
+      <% } %>
+      <a
+        href="/admin"
+        target="_blank"
+        class="badge"
+        style="text-decoration: none"
+      >
+        Admin
+      </a>
+    </div>
+  </body>
+</html>
