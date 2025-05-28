@@ -68,36 +68,11 @@ app.set("view engine", "ejs");
 
 app.use("/public", express.static(Constants.paths.root_public));
 
-/// Flutter app path
-/* const appPath = '../../../../tests/artisian/test/build/web';
-const flutterWebPath = path.join(__dirname, appPath);
-app.use('/app', express.static(flutterWebPath));
-*/
-
-// app.get("/", (req, res) => {
-//     res.render("index", {
-//         appName: process.env.APP_NAME || 'MyApp',
-//         appVersion: process.env.APP_VERSION || '1.0.0',
-//         appDescription: process.env.APP_DESCRIPTION || 'Backend API Server',
-//         appAuthor: process.env.APP_AUTHOR || 'Unknown Author',
-//         apiVersion: process.env.API_V || '/api/v1/',
-//         port: process.env.PORT || 3000,
-//         showFlutterAppLink: true
-//     });
-// })
-
-app.get('/preview/admin', (req, res) => {
-    res.render('preview/admin/dashboard');
-});
-
-
 // Connect to database
 connectDB();
 
 
-
-app.use(Constants.routes.api, routes);
-app.use(Constants.routes.view, routes);
+app.use('/', routes);
 app.use(errorHandler);
 
 const PORT = Constants.paths.port || 3000;
