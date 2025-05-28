@@ -1,6 +1,6 @@
 **/.DS_Store
 node_modules/
-.env
+# .env
 logs/
 
 # Ignore all files inside any folder from public/

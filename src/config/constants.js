@@ -10,6 +10,7 @@ const {
     APP_VERSION,
     APP_DESCRIPTION,
     APP_AUTHOR,
+    API_BASE_PATH,
     MONGO_URI,
     NODE_ENV,
     SECRET_ACCESS_KEY,
@@ -18,6 +19,7 @@ const {
     TIME_ZONE,
     TIME_ZONE_NAME,
     URL,
+    PORT,
     REDIS_ENABLED,
     REDIS_HOST,
     REDIS_PORT,
@@ -54,7 +56,7 @@ const db = {
 // routes configurations
 const routes = {
     view: "/",
-    api: "/api",
+    api: API_BASE_PATH,
     admin: "/admin",
 };
 
@@ -123,8 +125,12 @@ const pageStatus = {
 const rootPath = path.normalize(dirname + "/..");
 
 const paths = {
+    port: PORT,
+    url: URL,
     root: rootPath,
     root_public: `${rootPath}/public/`,
+    flutterApp: `../../../../../../tests/artisian/test/build/web`,
+    views: `${rootPath}/views/`,
     publicKey: "public",
     public_url: `${URL}/public/`,
     DEFAULT_USER_IMAGE: "default_user_image.png",
