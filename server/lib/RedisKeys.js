@@ -5,7 +5,7 @@ const Redis = Constants.REDIS_KEYS;
 
 const RedisKeys = {
     AuthKey: (role, id) => [
-        role === Constants.roles.accessLevels.ADMIN
+        role === Constants.roles.type.ADMIN
             ? Redis.ADMIN_AUTH
             : Redis.USER_AUTH,
         id,

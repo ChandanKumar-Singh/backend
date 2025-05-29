@@ -81,7 +81,7 @@ const AUTH_PROVIDERS = {
 
 // Role-based configurations
 const roles = {
-    accessLevels: {
+    type: {
         ADMIN: "ADMIN",
         USER: "USER",
         MEMBER: "MEMBER",
@@ -92,7 +92,7 @@ const roles = {
         SUPPORT: "SUPPORT",
         SUPER_ADMIN: "SUPER_ADMIN",
     },
-    role: {
+    userRole: {
         GENERAL: "GENERAL",
         VENDOR: "VENDOR",
         SHOWROOM_MANAGER: "SHOWROOM_MANAGER",
@@ -130,6 +130,7 @@ const paths = {
     root: rootPath,
     root_public: `${rootPath}/public/`,
     flutterApp: `../../../../../../tests/artisian/test/build/web`,
+    adminWeb: `../../../client/build`,
     views: `${rootPath}/views/`,
     publicKey: "public",
     public_url: `${URL}/public/`,

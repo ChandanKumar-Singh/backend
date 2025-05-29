@@ -1,33 +1,39 @@
-import httpStatus from 'http-status';
-import catchAsync from '../../lib/catchAsync.js';
-import FileUploadUtils from '../../utils/FileUpload.utils.js';
-import Constants from '../../config/constants.js';
-import ApiError from '../../middlewares/ApiError.js';
-import { mObj, withTransaction } from '../../lib/mongoose.utils.js';
-import resConv from '../../utils/resConv.js';
-import UserDBO from '../../dbos/UserDBO.js';
-import { logg } from '../../utils/logger.js';
-import AuthenticateDBO from '../../dbos/AuthenticateDBO.js';
-import EmailService from '../../services/EmailService.js';
+import httpStatus from "http-status";
+import catchAsync from "../../lib/catchAsync.js";
+import FileUploadUtils from "../../utils/FileUpload.utils.js";
+import Constants from "../../config/constants.js";
+import ApiError from "../../middlewares/ApiError.js";
+import { mObj, withTransaction } from "../../lib/mongoose.utils.js";
+import resConv from "../../utils/resConv.js";
+import UserDBO from "../../dbos/UserDBO.js";
+import { logg } from "../../utils/logger.js";
+import AuthenticateDBO from "../../dbos/AuthenticateDBO.js";
+import EmailService from "../../services/EmailService.js";
 
 class UserController {
     uploadImage = catchAsync(async (req, res, next) => {
-        logg('📸 Uploading image...', req.body);
+        logg("📸 Uploading image...", req.body);
         const tempUpload = await FileUploadUtils.uploadFiles(
             req,
             res,
-            [{ name: 'image', maxCount: 2 }],
+            [{ name: "image", maxCount: 2 }],
             Constants.paths.DEFAULT_USER_IMAGE_PATH
         );
         let file = null;
-        if (tempUpload.files && 'image' in tempUpload.files && tempUpload.files.image.length > 0) {
+        if (
+            tempUpload.files &&
+            "image" in tempUpload.files &&
+            tempUpload.files.image.length > 0
+        ) {
             file = tempUpload.files.image[0];
         }
 
         req.body = {
             ...req.body,
             ...tempUpload.body,
-            image: file ? Constants.paths.DEFAULT_USER_IMAGE_PATH + file.filename : null,
+            image: file
+                ? Constants.paths.DEFAULT_USER_IMAGE_PATH + file.filename
+                : null,
         };
         next();
     });
@@ -35,28 +41,46 @@ class UserController {
     detail = catchAsync(async (req, res) => {
         const { id } = req.body;
         const obj = await UserDBO.getById(mObj(id));
-        if (!obj) throw new ApiError(httpStatus.OK, 'User not found');
+        if (!obj) throw new ApiError(httpStatus.OK, "User not found");
         res.status(httpStatus.OK).send(resConv({ ...obj }));
     });
 
-    create = catchAsync(async (req, res) => withTransaction(async (session) => {
-        const response = await AuthenticateDBO.createUser(req.body, { session, processAuth: false });
-        res.status(httpStatus.OK).send(resConv(response));
-    }));
+    create = catchAsync(async (req, res) =>
+        withTransaction(async (session) => {
+            const response = await AuthenticateDBO.createUser(req.body, {
+                session,
+                processAuth: false,
+            });
+            res.status(httpStatus.OK).send(resConv(response));
+        })
+    );
 
-    update = catchAsync(async (req, res) => withTransaction(async (session) => {
-        const response = await UserDBO.update(req.body, { session });
-        res.status(httpStatus.OK).send(resConv(response));
-    }));
+    update = catchAsync(async (req, res) =>
+        withTransaction(async (session) => {
+            const response = await UserDBO.update(req.body, { session });
+            res.status(httpStatus.OK).send(resConv(response));
+        })
+    );
 
     isExists = catchAsync(async (req, res) => {
         const { id, contact, type } = req.body;
         const isExists = await UserDBO.getById(id);
-        res.status(httpStatus.OK).send(resConv({ is_exists: isExists !== undefined }));
+        res
+            .status(httpStatus.OK)
+            .send(resConv({ is_exists: isExists !== undefined }));
     });
 
     list = catchAsync(async (req, res) => {
-        const users = await UserDBO.getList(req.body);
+        const users = await UserDBO.getList({
+            ...req.body,
+            query_data: [
+                {
+                    name: "type",
+                    type: "select",
+                    value: Constants.roles.type.USER,
+                },
+            ],
+        });
         res.status(httpStatus.OK).send(resConv(users));
     });
 
@@ -90,7 +114,7 @@ class UserController {
     vcf = catchAsync(async (req, res) => {
         const { id } = req.body;
         const obj = await UserDBO.getVcf(mObj(id));
-        if (!obj) throw new ApiError(httpStatus.OK, 'User not found');
+        if (!obj) throw new ApiError(httpStatus.OK, "User not found");
         res.status(httpStatus.OK).send(resConv({ details: obj }));
     });
 
@@ -101,16 +125,14 @@ class UserController {
 
     sendMail = catchAsync(async (req, res) => {
         const { template } = req.body;
-        logg(Constants.paths)
+        logg(Constants.paths);
         EmailService.renderEmailTemplate(res, template, {
             name: "John Doe",
             actionLink: "https://yourplatform.com/get-started",
-            logo: 'http://localhost:3001/public/default_user_image.png'
-            // http:/localhost:3001/public/default_user_image.png 
+            logo: "http://localhost:3001/public/default_user_image.png",
+            // http:/localhost:3001/public/default_user_image.png
         });
     });
-
 }
-
 
 export default new UserController();

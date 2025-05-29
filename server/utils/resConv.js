@@ -1,6 +1,6 @@
 import { logg } from "./logger.js";
 
-const resConv = ( data = null, message = '', code = 1, stackTrace ) => {
+const resConv = (data = null, message = '', code = 1, stackTrace, errorCode) => {
   // Default messages for common status codes
   const defaultMessages = {
     1: 'Success',
@@ -18,7 +18,7 @@ const resConv = ( data = null, message = '', code = 1, stackTrace ) => {
 
   // Standard response format
   return code === 0
-    ? { status: code, message: responseMessage, error: data, stackTrace }
+    ? { status: code, message: responseMessage, error: data, stackTrace, errorCode }
     : { status: code, message: responseMessage, data, stackTrace };
 };
 

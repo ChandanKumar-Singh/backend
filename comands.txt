@@ -1,0 +1,36 @@
+my-fullstack-app/
+├── client/                  # React app
+│   ├── public/
+│   ├── src/
+│   └── build/               # Output of `npm run build`
+├── server/                  # Express app
+│   ├── routes/
+│   ├── controllers/
+│   └── app.js               # Main Express file
+├── node_modules/
+├── package.json             # Root for shared scripts/dev tools
+└── .gitignore
+
+
+npm init -y
+npm install express
+npm install concurrently nodemon --save-dev
+
+
+Then inside client/:
+
+npx create-react-app .
+
+outer 
+"scripts": {
+  "client": "npm start --prefix client",
+  "server": "nodemon server/app.js",
+  "dev": "concurrently \"npm run server\" \"npm run client\""
+}
+
+
+cd client
+npm run build
+
+
+npm run dev

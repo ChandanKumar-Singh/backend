@@ -7,7 +7,7 @@ const crudSchema = (isRequired = false) => {
         member_id: Joi.string().optional().allow('', null),
         contact: Joi.string().optional().allow('', null),
         email: Joi.string().optional().allow('', null),
-        type: isRequired ? Joi.string().required() : Joi.string().optional().allow('', null),
+        type: isRequired ? Joi.string().required().valid(...Object.keys(Constants.roles.type)) : Joi.string().optional().allow('', null),
         image: Joi.string().optional().allow('', null),
         status: Joi.string().optional().allow('', null).valid(...Object.keys(Constants.USER_STATUS)).messages({
             'any.only': `Status must be one of: ${Object.keys(Constants.USER_STATUS).join(', ')}.`,

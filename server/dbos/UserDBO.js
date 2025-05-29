@@ -195,7 +195,7 @@ class UserDBO {
 
 
     getAllAdmins = async (q) => {
-        return await this.fetchUsers({ query: [{ $match: { type: Constants.roles.accessLevels.ADMIN } }], paginate: true, limit: 20 });
+        return await this.fetchUsers({ query: [{ $match: { type: Constants.roles.type.ADMIN } }], paginate: true, limit: 20 });
     }
 
     getById = async (id, { session = null, shouldForce = false } = {}) => {
@@ -263,7 +263,7 @@ class UserDBO {
         if (email) {
             user.email = email;
             if (sendMail) {
-                AuthenticateDBO.sendMail(email, user.type === Constants.roles.accessLevels.ADMIN, { session });
+                AuthenticateDBO.sendMail(email, user.type === Constants.roles.type.ADMIN, { session });
                 return { message: ResponseCodes.SUCCESS_MESSAGES.EMAIL_OTP_SENT };
             }
         }
@@ -271,7 +271,7 @@ class UserDBO {
             const { contact, country_code } = getCountryContact(contact);
             user.contact = contact;
             user.country_code = country_code;
-            if (sendOtp) return await AuthenticateDBO.sendOtp(contact, user.type === Constants.roles.accessLevels.ADMIN, { session });
+            if (sendOtp) return await AuthenticateDBO.sendOtp(contact, user.type === Constants.roles.type.ADMIN, { session });
         }
         if (fcmToken) user.fcmToken = fcmToken;
         if (deviceId) user.deviceId = deviceId;

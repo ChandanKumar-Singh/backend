@@ -4,6 +4,38 @@ import { emailValidator, phoneValidator } from './common.validators.js';
 import { logg } from '../../utils/logger.js';
 
 
+
+/// admin 
+export const adminLoginSchema = {
+  body: {
+    email: Joi.string().email().required(),
+    password: Joi.string().min(6).required(),
+  },
+};
+export const adminCreate = {
+  body: {
+    country_code: Joi.string().required().default('+91'),
+    contact: Joi.string().required(),
+    password: Joi.string().required(),
+    name: Joi.string().required(),
+    email: Joi.string().required(),
+    role: Joi.string()
+      .valid(...Object.values(Constants.roles.adminRole))
+      .default(Constants.roles.adminRole.SUPER_ADMIN)
+      .messages({
+        'any.only': `Role must be one of: ${Object.values(Constants.roles.adminRole).join(', ')}.`,
+      }),
+    type: Joi.string()
+      .valid(...Object.values(Constants.roles.type))
+      .default(Constants.roles.type.ADMIN)
+      .messages({
+        'any.only': `Type must be one of: ${Object.values(Constants.roles.type).join(', ')}.`,
+      }),
+  }
+};
+
+
+/// custome
 export const login = {
   body: {
     provider: Joi.string()
@@ -75,14 +107,6 @@ export const login = {
   },
 };
 
-
-export const loginSchema = {
-  body: {
-    email: Joi.string().email().required(),
-    password: Joi.string().min(6).required(),
-  },
-};
-
 export const create = {
   body: {
     country_code: Joi.string().required().default('+91'),
@@ -91,41 +115,21 @@ export const create = {
     name: Joi.string().required(),
     email: Joi.string().required(),
     role: Joi.string()
-      .valid(...Object.values(Constants.roles.role))
-      .required()
+      .valid(...Object.values(Constants.roles.userRole))
+      .default(Constants.roles.userRole.GENERAL)
       .messages({
-        'any.only': `Role must be one of: ${Object.values(Constants.roles.role).join(', ')}.`,
+        'any.only': `Role must be one of: ${Object.values(Constants.roles.userRole).join(', ')}.`,
       }),
     type: Joi.string()
-      .valid(...Object.values(Constants.roles.accessLevels).filter((i) => i !== Constants.roles.accessLevels.ADMIN))
+      .valid(...Object.values(Constants.roles.type).filter((i) => i !== Constants.roles.type.ADMIN))
       .required()
       .messages({
-        'any.only': `Type must be one of: ${Object.values(Constants.roles.accessLevels).filter((i) => i !== Constants.roles.accessLevels.ADMIN).join(', ')}.`,
+        'any.only': `Type must be one of: ${Object.values(Constants.roles.type).filter((i) => i !== Constants.roles.type.ADMIN).join(', ')}.`,
       }),
   }
 };
 
-export const adminCreate = {
-  body: {
-    country_code: Joi.string().required().default('+91'),
-    contact: Joi.string().required(),
-    password: Joi.string().required(),
-    name: Joi.string().required(),
-    email: Joi.string().required(),
-    role: Joi.string()
-      .valid(...Object.values(Constants.roles.adminRole))
-      .required()
-      .messages({
-        'any.only': `Role must be one of: ${Object.values(Constants.roles.adminRole).join(', ')}.`,
-      }),
-    type: Joi.string()
-      .valid(...Object.values(Constants.roles.accessLevels))
-      .required()
-      .messages({
-        'any.only': `Type must be one of: ${Object.values(Constants.roles.accessLevels).join(', ')}.`,
-      }),
-  }
-};
+
 
 export const sendOTP = {
   body: {

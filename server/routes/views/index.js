@@ -14,6 +14,9 @@ const __dirname = path.dirname(__filename);
 // Setup Flutter web path
 const appPath = Constants.paths.flutterApp;
 const flutterWebPath = path.join(__dirname, appPath);
+// Setup admin web path
+const adminPath = Constants.paths.adminWeb;
+const adminWebPath = path.join(__dirname, adminPath);
 
 // General view render helper
 const renderView = (viewName, options = {}) => (req, res) => {
@@ -52,6 +55,7 @@ router.get('/admin', renderView('preview/admin/dashboard', {
         'Product <strong>“iPhone 15”</strong> updated.'
     ]
 }));
+
 router.get('/admin/users', renderView('preview/admin/users', {
     title: 'Users Management',
     pageTitle: 'Manage Users',
@@ -69,6 +73,11 @@ router.get('/auth', AdminMiddleware, renderView('index', { title: 'Admin Auth Pa
 router.use('/app', (req, res, next) => {
     express.static(flutterWebPath)(req, res, next);
 });
+
+// REact Web App serving
+console.log(adminWebPath)
+// Serve static assets (JavaScript, CSS, images, etc.)
+router.use("/react", express.static(adminWebPath));
 
 /// also works
 // router.get('/app', (req, res) => {

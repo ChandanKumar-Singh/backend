@@ -2,10 +2,10 @@ import { Router } from "express";
 import Constants from "../config/constants.js";
 import viewRoutes from "./views/index.js";
 import apiRoutes from "./apis/index.js";
-const routes = new Router();
+const router = new Router();
+console.log(`Apis route at ${Constants.routes.api}`)
+router.use(Constants.routes.view, viewRoutes)
+router.use(Constants.routes.api, apiRoutes)
 
-routes.use(Constants.routes.view, viewRoutes)
-routes.use(Constants.routes.api, apiRoutes)
 
-
-export default routes; 
+export default router; 

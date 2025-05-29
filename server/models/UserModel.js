@@ -21,12 +21,12 @@ const UserSchema = new Schema(
     image: { type: String, default: Constants.DEFAULT_USER_IMAGE },
     type: {
       type: String,
-      enum: Object.values(Constants.roles.accessLevels),
+      enum: Object.values(Constants.roles.type),
     },
     role: {
       type: String,
-      enum: [...Object.values(Constants.roles.adminRole), ...Object.values(Constants.roles.role)],
-      default: Constants.roles.role.GENERAL,
+      enum: [...Object.values(Constants.roles.adminRole), ...Object.values(Constants.roles.userRole)],
+      default: Constants.roles.userRole.GENERAL,
     },
     password: { type: String },
     member_id: { type: Schema.Types.ObjectId, ref: "members" },
