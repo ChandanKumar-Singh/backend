@@ -5,8 +5,11 @@
   "main": "src/server.js",
   "type": "module",
   "scripts": {
-    "start": "node index.js",
-    "dev": "NODE_TLS_REJECT_UNAUTHORIZED=0 nodemon index.js"
+    "client": "npm start --prefix client",
+    "start": "node server/index.js",
+    "dev": "NODE_TLS_REJECT_UNAUTHORIZED=0 nodemon server/index.js",
+    "both": "concurrently \"npm run dev\" \"npm run client\"",
+    "buildApp": "npm run build --prefix client"
   },
   "dependencies": {
     "axios": "^1.8.3",
@@ -39,6 +42,7 @@
     "winston-daily-rotate-file": "^5.0.0"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1"
+    "concurrently": "^9.1.2",
+    "nodemon": "^3.1.10"
   }
 }

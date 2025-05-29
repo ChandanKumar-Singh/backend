@@ -29,11 +29,11 @@ class AuthenticateDBO {
         query = { country_code, contact };
       }
       if (isAdmin) {
-        query["type"] = Constants.roles.accessLevels.ADMIN;
+        query["type"] = Constants.roles.type.ADMIN;
       } else {
         query["$or"] = [
           {
-            type: { $in: Object.values(Constants.roles.accessLevels) },
+            type: { $in: Object.values(Constants.roles.type) },
           },
         ];
       }
@@ -45,11 +45,11 @@ class AuthenticateDBO {
   getUserByUniqueKey = async (uniqueKeys = [], isAdmin = false, { session = null } = {}) => {
     let query = {};
     if (isAdmin) {
-      query["type"] = Constants.roles.accessLevels.ADMIN;
+      query["type"] = Constants.roles.type.ADMIN;
     } else {
       query["$or"] = [
         {
-          type: { $in: Object.values(Constants.roles.accessLevels) },
+          type: { $in: Object.values(Constants.roles.type) },
         },
       ];
     }
@@ -178,7 +178,7 @@ class AuthenticateDBO {
       name,
       email,
       role,
-      type: Constants.roles.accessLevels.USER,
+      type: Constants.roles.type.USER,
       status: Constants.USER_STATUS.ACTIVE,
     });
     user = await user.save({ session, new: true });
@@ -507,12 +507,12 @@ class AuthenticateDBO {
   };
 
   getAllAdmins = async () => {
-    return await UserModel.find({ type: Constants.roles.accessLevels.ADMIN });
+    return await UserModel.find({ type: Constants.roles.type.ADMIN });
   };
 
   deleteAllAdmins = async () => {
     return await UserModel.deleteMany({
-      type: Constants.roles.accessLevels.ADMIN,
+      type: Constants.roles.type.ADMIN,
     });
   };
 

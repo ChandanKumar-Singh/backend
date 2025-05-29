@@ -26,7 +26,7 @@ const verifyToken = (token, req, role) => {
     jwt.verify(token, sessionSecret, async (err, decoded) => {
       if (err || !decoded) {
         logg("❌ JWT Verification Failed:", err?.message || "Invalid Token");
-        return reject(new ApiError(httpStatus.UNAUTHORIZED, ResponseCodes.ERROR.INVALID_TOKEN, true, null, 0, err));
+        return reject(new ApiError(httpStatus.UNAUTHORIZED, ResponseCodes.ERROR.INVALID_TOKEN, true, null, 0, err, 'INVALID_TOKEN'));
       }
       // logg("✅ JWT Decoded:", decoded);
 
@@ -41,7 +41,7 @@ const verifyToken = (token, req, role) => {
           // warnLog("Decoded JWT:", decoded, role , data);
           // warnLog("Decoded Redis Data:", decodedData);
           if (!decodedData || decodedData.id !== decoded.id) {
-            return reject(new ApiError(httpStatus.UNAUTHORIZED, ResponseCodes.AUTH_ERRORS.SESSION_EXPIRED, true, null, 0, err));
+            return reject(new ApiError(httpStatus.UNAUTHORIZED, ResponseCodes.AUTH_ERRORS.SESSION_EXPIRED, true, null, 0, err, 'SESSION_EXPIRED'));
           }
           req.user = decodedData;
         }
@@ -69,13 +69,13 @@ const authenticate = (role) => async (req, res, next) => {
     if (!authorization || !authorization.startsWith("Bearer ")) {
       return res
         .status(httpStatus.UNAUTHORIZED)
-        .json(resConv(null, ResponseCodes.AUTH_ERRORS.UNAUTHORIZED_ACCESS, 0, new Error().stack));
+        .json(resConv(null, ResponseCodes.AUTH_ERRORS.UNAUTHORIZED_ACCESS, 0, new Error().stack, "AUTH_MISSING_TOKEN"));
     }
 
     const token = authorization.split(" ")[1];
     await verifyToken(token, req, role);
 
-    req.sender = Constants.roles.accessLevels[role] || "UNKNOWN_ROLE";
+    req.sender = Constants.roles.type[role] || "UNKNOWN_ROLE";
     // if (!Constants.envs.production) logg(`✅ User Authenticated: Role=${req.sender}, ID=${req.user?.id || "N/A"}`);
     next();
   } catch (error) {
@@ -86,5 +86,5 @@ const authenticate = (role) => async (req, res, next) => {
 };
 
 // Export specific middlewares for different roles
-export const AdminMiddleware = authenticate(Constants.roles.accessLevels.ADMIN);
-export const UserMiddleware = authenticate(Constants.roles.accessLevels.USER);
+export const AdminMiddleware = authenticate(Constants.roles.type.ADMIN);
+export const UserMiddleware = authenticate(Constants.roles.type.USER);

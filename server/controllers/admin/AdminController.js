@@ -77,7 +77,9 @@ class AdminController {
     }));
 
     login = catchAsync(async (req, res) => withTransaction(async (session) => {
-        let response = await AuthenticateDBO.login(req.body, { session: session });
+        let data = req.body;
+        data.username = data.email;
+        let response = await AuthenticateDBO.login(data, { session: session, isAdmin: true });
         res.status(httpStatus.OK).send(resConv(response));
     }));
 

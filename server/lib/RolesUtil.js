@@ -3,11 +3,11 @@ import Constants from '../config/constants.js';
 class RolesUtil {
     calculateRole = (departmentId, empCode) => {
         if (['EMP/001', 'EMP/007', 'EMP/322', 'EMP/2391', 'EMP/900'].includes(empCode)) {
-            return Constants.roles.accessLevels.OWNER;
+            return Constants.roles.type.OWNER;
         } else if (['EMP/330'].includes(empCode)) {
-            return Constants.roles.role.SHOWROOM_MANAGER;
+            return Constants.roles.userRole.SHOWROOM_MANAGER;
         } else {
-            return Constants.roles.role.OTHERS;
+            return Constants.roles.userRole.OTHERS;
         }
 
         // if (Constants.CORPORATE_HR_CODES.indexOf(empCode) >= 0) {
@@ -25,7 +25,7 @@ class RolesUtil {
 
     isUserCorporateHr = (empCode) => {
         const role = this.calculateRole(null, empCode);
-        return role === Constants.roles.role.CORPORATE_HR;
+        return role === Constants.roles.userRole.CORPORATE_HR;
     };
 }
 
