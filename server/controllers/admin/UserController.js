@@ -41,7 +41,7 @@ class UserController {
     detail = catchAsync(async (req, res) => {
         const { id } = req.body;
         const obj = await UserDBO.getById(mObj(id));
-        if (!obj) throw new ApiError(httpStatus.OK, "User not found");
+        if (!obj) throw new ApiError(httpStatus.NOT_FOUND, "User not found");
         res.status(httpStatus.OK).send(resConv({ ...obj }));
     });
 
@@ -114,7 +114,7 @@ class UserController {
     vcf = catchAsync(async (req, res) => {
         const { id } = req.body;
         const obj = await UserDBO.getVcf(mObj(id));
-        if (!obj) throw new ApiError(httpStatus.OK, "User not found");
+        if (!obj) throw new ApiError(httpStatus.NOT_FOUND, "User not found");
         res.status(httpStatus.OK).send(resConv({ details: obj }));
     });
 

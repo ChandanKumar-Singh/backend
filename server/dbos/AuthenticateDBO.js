@@ -113,15 +113,15 @@ class AuthenticateDBO {
     const tempAuth = await this.getUser(contact, isAdmin);
 
     if (tempAuth && tempAuth.status !== Constants.EMPLOYEE_STATUS.ACTIVE) {
-      throw new ApiError(httpStatus.OK, "User Suspended");
+      throw new ApiError(httpStatus.NOT_FOUND, "User Suspended");
     }
     if (!tempAuth) {
-      throw new ApiError(httpStatus.OK, "Account not found");
+      throw new ApiError(httpStatus.NOT_FOUND, "Account not found");
     }
 
     if (!tempAuth.password || !tempAuth.authenticate(password)) {
       const err = new ApiError(
-        httpStatus.OK,
+        httpStatus.BAD_REQUEST,
         "Invalid credentials! Please verify."
       );
       throw err;
@@ -167,7 +167,7 @@ class AuthenticateDBO {
     });
     if (tempAuth)
       throw new ApiError(
-        httpStatus.OK,
+        httpStatus.CONFLICT,
         ResponseCodes.USER_ERRORS.USER_ALREADY_EXISTS(contact)
       );
 
@@ -194,7 +194,7 @@ class AuthenticateDBO {
     const tempAuth = await this.getUser(contact, isAdmin, { session: session });
     if (tempAuth) {
       if (tempAuth.status !== Constants.USER_STATUS.ACTIVE) {
-        throw new ApiError(httpStatus.OK, ResponseCodes.ACCOUNT.ACCOUNT_SUSPENDED);
+        throw new ApiError(httpStatus.NOT_FOUND, ResponseCodes.ACCOUNT.ACCOUNT_SUSPENDED);
       }
       const otp =
         tempAuth.contact === "8054212321" ? 777777 : generateVerificationCode();
@@ -211,7 +211,7 @@ class AuthenticateDBO {
           "A verification code has been sent to your registered mobile number/email",
       };
     }
-    throw new ApiError(httpStatus.OK, "User not found");
+    throw new ApiError(httpStatus.NOT_FOUND, "User not found");
   };
 
   sendMail = async (email, subject, message) => {
@@ -231,10 +231,10 @@ class AuthenticateDBO {
   ) => {
     const tempAuth = await this.getUser(contact, isAdmin, { session });
     if (!tempAuth) {
-      throw new ApiError(httpStatus.OK, "Account not found");
+      throw new ApiError(httpStatus.NOT_FOUND, "Account not found");
     }
     if (tempAuth && tempAuth.status !== Constants.USER_STATUS.ACTIVE) {
-      throw new ApiError(httpStatus.OK, "User Suspended");
+      throw new ApiError(httpStatus.NOT_FOUND, "User Suspended");
     }
     if (
       !tempAuth
@@ -242,7 +242,7 @@ class AuthenticateDBO {
       // ||  tempAuth.otp !== otp
     ) {
       logg("otp", tempAuth?.otp, otp);
-      const err = new ApiError(httpStatus.OK, "Incorrect OTP Entered");
+      const err = new ApiError(httpStatus.BAD_REQUEST, "Incorrect OTP Entered");
       throw err;
     }
 
@@ -261,7 +261,7 @@ class AuthenticateDBO {
     const { username, password } = data;
     logg("username", username);
     let tempAuth = await this.getUser(username);
-    if (!tempAuth) throw new ApiError(httpStatus.OK, "Account not found");
+    if (!tempAuth) throw new ApiError(httpStatus.NOT_FOUND, "Account not found");
     if (data.provider && data.provider === Constants.AUTH_PROVIDERS.PHONE) {
       var res = await this.sendOtp(
         username,
@@ -297,7 +297,7 @@ class AuthenticateDBO {
         ...emp,
       };
     }
-    return new ApiError(httpStatus.OK, "Employee not found");
+    return new ApiError(httpStatus.NOT_FOUND, "Employee not found");
   };
 
   logoutUser = async (userId) => {
@@ -321,7 +321,7 @@ class AuthenticateDBO {
   changePassword = async (userId, currentPassword, password) => {
     const tempAuth = await mongoOne(await EmployeeModel.find({ _id: userId }));
     if (!tempAuth || !tempAuth.authenticate(currentPassword)) {
-      throw new ApiError(httpStatus.OK, "Please Verify Password");
+      throw new ApiError(httpStatus.NOT_FOUND, "Please Verify Password");
     }
     tempAuth.password = password;
     tempAuth.save().then(() => { });
@@ -347,7 +347,7 @@ class AuthenticateDBO {
         if (contact && contact.length > 0) {
           return await this.sendOtp(contact, false, { session: session });
         } else {
-          throw new ApiError(httpStatus.OK, "Recovey method not found");
+          throw new ApiError(httpStatus.NOT_FOUND, "Recovey method not found");
         }
       }
     }
@@ -367,7 +367,7 @@ class AuthenticateDBO {
       tempUser.resetPasswordExpires = undefined;
       await tempUser.save({ session });
     } else {
-      throw new ApiError(httpStatus.OK, "Password reset token is invalid or has expired.");
+      throw new ApiError(httpStatus.BAD_REQUEST, "Password reset token is invalid or has expired.");
     }
   };
 
