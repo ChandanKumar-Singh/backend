@@ -28,6 +28,7 @@ class QueryUtils {
     ) => {
         const sort = { [row]: order === "desc" ? -1 : 1 };
         const dbQuery = [];
+        // console.log(`query ${query}`);
 
         // ✅ Global Text Search (`query`)
         if (
@@ -43,6 +44,8 @@ class QueryUtils {
             console.log("🔍", regexQueryArr);
             if (regexQueryArr.length > 0) dbQuery.push({ $or: regexQueryArr });
         }
+        // console.log(`query ${query}`);
+
         /* if (!Array.isArray(query_data) || query_data.length === 0) {
             return {
                 isSearch: query.trim().length > 0,
@@ -75,7 +78,7 @@ class QueryUtils {
             switch (type) {
                 case "select":
                     if (Array.isArray(value)) {
-                        dbQuery.push({ [name]: { $in: value.map((val) =>this.stringORId(value)) } });
+                        dbQuery.push({ [name]: { $in: value.map((val) => this.stringORId(value)) } });
                     } else {
                         dbQuery.push({ [name]: this.stringORId(value) });
                     }
@@ -163,6 +166,7 @@ class QueryUtils {
                     break;
             }
         });
+        // console.log(`query ${query}`);
 
         if (fromDate || toDate) {
             const dateQuery = { $and: [] };
@@ -188,7 +192,7 @@ class QueryUtils {
 
 
         const fQuery = dbQuery.length ? { $and: dbQuery } : {};
-
+        // console.log(`query ${query}`);
         let data = {
             isSearch: query.trim().length > 0,
             page,
@@ -199,7 +203,7 @@ class QueryUtils {
             timezone,
         };
 
-        logg("🔍 Query:", JSON.stringify(data, null, 2));
+        // logg("🔍 Query:", JSON.stringify(data, null, 2));
         return data;
     };
 

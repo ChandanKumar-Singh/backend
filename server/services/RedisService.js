@@ -46,7 +46,7 @@ class RedisService {
     async hget(hashKey, field, decode = true) {
         if (!this.ENABLED) return null;
         try {
-            warnLog('Getting redis field:', this.REDIS_KEY + hashKey, field?.toString());
+            // warnLog('Getting redis field:', this.REDIS_KEY + hashKey, field?.toString());
             let res = await this.client.hGet(this.REDIS_KEY + hashKey, field?.toString());
             return decode ? JSON.parse(res) : res;
         } catch (err) {

@@ -18,6 +18,7 @@ import CronManager from './cron/CronManager.js';
 import './core/firebase.js';
 import { logger } from './utils/logger.js';
 import { dirname } from './utils/PathUtils.js';
+import { HttpStatusCode } from 'axios';
 const app = express();
 
 app.use(cors({
@@ -87,7 +88,7 @@ app.use('/', router);
 
 
 app.use((req, res) => {
-    res.status(404).send(`
+    res.status(HttpStatusCode.NotFound).send(`
 <!DOCTYPE html>
 <html lang="en">
 <head>
