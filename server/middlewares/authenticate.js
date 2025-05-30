@@ -25,8 +25,8 @@ const verifyToken = (token, req, role) => {
   return new Promise((resolve, reject) => {
     jwt.verify(token, sessionSecret, async (err, decoded) => {
       if (err || !decoded) {
-        logg("❌ JWT Verification Failed:", err?.message || "Invalid Token");
-        return reject(new ApiError(httpStatus.UNAUTHORIZED, ResponseCodes.ERROR.INVALID_TOKEN, true, null, 0, err, 'INVALID_TOKEN'));
+        logg(`❌ JWT Verification Failed: \n ${token}`, err?.message || "Invalid Token");
+        return reject(new ApiError(httpStatus.UNAUTHORIZED, ResponseCodes.ERROR.INVALID_TOKEN, true, null, 0, err, 'SESSION_EXPIRED'));
       }
       // logg("✅ JWT Decoded:", decoded);
 
@@ -81,7 +81,7 @@ const authenticate = (role) => async (req, res, next) => {
   } catch (error) {
     return res
       .status(error.statusCode || httpStatus.INTERNAL_SERVER_ERROR)
-      .json(resConv(error.message, error.message, 0, new Error().stack));
+      .json(resConv(error, error.message, 0, new Error().stack, error.errorCode));
   }
 };
 

@@ -143,7 +143,7 @@ class AuthenticateDBO {
     });
     if (tempAuth)
       throw new ApiError(
-        httpStatus.OK,
+        httpStatus.BAD_REQUEST,
         ResponseCodes.USER_ERRORS.ACCOUNT_ALREADY_EXISTS(contact)
       );
     let user = new UserModel({

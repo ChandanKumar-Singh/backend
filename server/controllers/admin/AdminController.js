@@ -93,6 +93,18 @@ class AdminController {
         await AuthenticateDBO.deleteAllAdmins(req);
         res.status(httpStatus.OK).send(resConv({}));
     });
+
+
+    ////////////////// Dashboard ///////////////
+    dashboardStats = catchAsync(async (req, res) => {
+        const users = await UserDBO.getUserCount(req.body);
+        res.status(httpStatus.OK).send(resConv({
+            totalUsers: users.total,
+            totalProjects: users.total,
+            activeUsers: users.total,
+            completedProjects: users.total,
+        }));
+    });
 }
 
 export default new AdminController();
