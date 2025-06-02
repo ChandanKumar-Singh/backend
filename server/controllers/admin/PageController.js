@@ -8,18 +8,18 @@ import httpStatus from 'http-status'
 class PageController {
     list = catchAsync(async (req, res) => {
         const { page, limit, sort, order } = req.query;
-        const pages = await WebPageDBO.getList({ page, limit, sort, order });
-        res.status(httpStatus.OK).json(resConv(pages));
+        const data = await WebPageDBO.getList({ page, limit, sort, order });
+        res.status(httpStatus.OK).json(resConv(data));
     });
 
     create = catchAsync(async (req, res) => withTransaction(async (session) => {
-        const page = await WebPageDBO.create(req.body, { session });
+        const page = await WebPageDBO.create(req.user.id, req.body, { session });
         res.status(httpStatus.OK).json(resConv(page, `${page.title} created successfully`));
     }));
 
     updateWebPage = catchAsync(async (req, res) => withTransaction(async (session) => {
         const { id } = req.params;
-        const page = await WebPageDBO.update(id, req.body, { session });
+        const page = await WebPageDBO.update(id, req.user.id, req.body, { session });
         res.status(httpStatus.OK).json(resConv(page, `${page.title} updated successfully`));
     }));
 

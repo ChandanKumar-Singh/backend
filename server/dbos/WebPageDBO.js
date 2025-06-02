@@ -121,7 +121,7 @@ class WebPageDBO {
                 page,
                 limit,
                 pages: Math.ceil(total / limit),
-                pages,
+                contents: pages,
             };
 
         } catch (error) {
@@ -131,7 +131,7 @@ class WebPageDBO {
     }
 
     getList = async (data, { session = null } = {} = {}) => {
-        return this.query({ session, paginate: false });
+        return this.query({ session, paginate: true });
     }
 
 
@@ -143,7 +143,7 @@ class WebPageDBO {
         return mongoOne(await this.query({ query: [{ $match: { slug } }], session, }));
     }
 
-    create = async (data, { session = null } = {}) => {
+    create = async (userId, data, { session = null } = {}) => {
         data.slug = constructSlug(data.slug, data.title);
         const existingPage = await this.getBySlug(data.slug, { session });
         if (existingPage) {
@@ -160,13 +160,13 @@ class WebPageDBO {
                 metaDescription: data.metaDescription,
                 keywords: data.keywords,
             },
-            createdBy: data.createdBy,
+            createdBy: data.createdBy || userId,
         });
         page = await page.save({ session, new: true });
         return this.getById(page.id, { session });
     }
 
-    update = async (id, data, { session = null } = {}) => {
+    update = async (id, userId, data, { session = null } = {}) => {
         let existingPage = await this.getById(id, { session });
         if (!existingPage) throw new ApiError(0, ResponseCodes.ERROR.NOT_FOUND);
         if (data.slug) {
@@ -186,9 +186,8 @@ class WebPageDBO {
             ...(data.metaTitle && { "seo.metaTitle": data.metaTitle }),
             ...(data.metaDescription && { "seo.metaDescription": data.metaDescription }),
             ...(data.keywords && { "seo.keywords": data.keywords }),
-            ...data.updatedBy && { updatedBy: data.updatedBy },
+            ...data.updatedBy && { updatedBy: data.updatedBy } || { updatedBy: userId },
         };
-
         await WebPage.findOneAndUpdate({ _id: id }, updateData, { new: true, session });
         return this.getById(id, { session });
     }

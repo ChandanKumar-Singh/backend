@@ -10,7 +10,7 @@ const webPageSchema = (isRequired = false) => ({
     metaTitle: Joi.string().max(255).allow("", null),
     metaDescription: Joi.string().max(500).allow("", null),
     keywords: Joi.array().items(Joi.string().max(50)).optional(),
-    createdBy: isRequired ? Joi.string().required() : Joi.string().optional(),
+    createdBy: Joi.string().optional(),
     updatedBy: Joi.string().optional(),
 });
 
