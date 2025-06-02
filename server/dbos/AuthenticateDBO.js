@@ -260,7 +260,7 @@ class AuthenticateDBO {
   login = async (data, { isAdmin = false, session = null } = {}) => {
     const { username, password } = data;
     logg("username", username);
-    let tempAuth = await this.getUser(username);
+    let tempAuth = await this.getUser(username, isAdmin);
     if (!tempAuth) throw new ApiError(httpStatus.NOT_FOUND, "Account not found");
     if (data.provider && data.provider === Constants.AUTH_PROVIDERS.PHONE) {
       var res = await this.sendOtp(

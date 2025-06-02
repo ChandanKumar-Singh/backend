@@ -116,9 +116,12 @@ const USER_STATUS = {
 
 // Page status
 const pageStatus = {
-    DRAFT: "draft",
-    PUBLISHED: "published",
-    INACTIVE: "inactive",
+    DRAFT: "DRAFT",
+    PUBLISHED: "PUBLISHED",
+    ARCHIVED: "ARCHIVED",
+    DELETED: "DELETED",
+    INACTIVE: "INACTIVE",
+    ACTIVE: "ACTIVE",
 };
 
 // Path configurations
