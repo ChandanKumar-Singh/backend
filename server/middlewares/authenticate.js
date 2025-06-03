@@ -66,7 +66,12 @@ const authenticate = (role) => async (req, res, next) => {
   try {
     const { authorization } = req.headers;
     if (!Constants.envs.production) logg("🔐 Authorization Header:", authorization);
+    const isAuthOptional = req.optionalAuth || false;
     if (!authorization || !authorization.startsWith("Bearer ")) {
+      if (isAuthOptional) {
+        next();
+        return;
+      }
       return res
         .status(httpStatus.UNAUTHORIZED)
         .json(resConv(null, ResponseCodes.AUTH_ERRORS.UNAUTHORIZED_ACCESS, 0, new Error().stack, "AUTH_MISSING_TOKEN"));
@@ -85,6 +90,17 @@ const authenticate = (role) => async (req, res, next) => {
   }
 };
 
+/**
+ * Middleware for optional authentication.
+ * If no token is provided, it allows the request to proceed without authentication.
+ */
+
+const optionalAuthenticate = async (req, res, next) => {
+  req.optionalAuth = true;
+  next();
+}
+
 // Export specific middlewares for different roles
 export const AdminMiddleware = authenticate(Constants.roles.type.ADMIN);
 export const UserMiddleware = authenticate(Constants.roles.type.USER);
+export const AuthOptionalMiddleware = optionalAuthenticate;

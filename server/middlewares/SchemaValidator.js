@@ -14,7 +14,7 @@ const SchemaValidator = (schema) => async (req, res, next) => {
       ...req.query,
       ...req.params,
     };
-    console.log("🔍 SchemaValidator Request Data:", reqs);
+    // console.log("🔍 SchemaValidator Request Data:", reqs);
     let validSchema = {};
     if (schema.body) validSchema = { ...validSchema, ...schema.body };
     if (schema.query) validSchema = { ...validSchema, ...schema.query };

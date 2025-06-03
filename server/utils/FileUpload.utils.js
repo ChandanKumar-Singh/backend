@@ -6,14 +6,21 @@ import { removeWildCards } from "./UrlsUtils.js";
 import { errorLog, logg } from "./logger.js";
 
 class FileUpload {
-  uploadFiles = async (req, res, fields, folderName) => {
-    const uploadFolder = path.join(Constants.paths.root_public, folderName);
-
-    if (!fs.existsSync(uploadFolder)) {
-      fs.mkdirSync(uploadFolder, { recursive: true });
-    }
+  uploadFiles = async (req, res, fields, fieldFolderMap) => {
+    // logg("[FileUpload] 📂 Uploading files...", req.body, fields, fieldFolderMap);
     const Storage = multer.diskStorage({
       destination: function (req, file, callback) {
+        const folderName = !fieldFolderMap ? Constants.paths.DEFAULT_DEFAULT_IMAGE_PATH :
+          typeof fieldFolderMap === "string" ? fieldFolderMap :
+            typeof fieldFolderMap === "object" && file.fieldname in fieldFolderMap ?
+              fieldFolderMap[file.fieldname] :
+              Constants.paths.DEFAULT_DEFAULT_IMAGE_PATH;
+        const uploadFolder = path.join(Constants.paths.root_public, folderName);
+
+        if (!fs.existsSync(uploadFolder)) {
+          fs.mkdirSync(uploadFolder, { recursive: true });
+        }
+        file.folderName = folderName;
         callback(null, uploadFolder);
       },
       filename: function (req, file, callback) {
@@ -29,10 +36,7 @@ class FileUpload {
       if (allowed.includes(ext)) {
         callback(null, true);
       } else {
-        const tempErr = new Error(
-          `Invalid file type! Only ${allowed.join(", ")} files are allowed.`
-        );
-        tempErr.status = 400;
+        const tempErr =  `Invalid file type! Only ${allowed.join(", ")} files are allowed.`
         callback(tempErr, false);
       }
     };
@@ -45,11 +49,8 @@ class FileUpload {
     const uploadFilePromise = new Promise((resolve, reject) => {
       upload(req, res, function (err) {
         if (err) {
-          const tempErr = new Error(
-            "something happened while uploading file: " + err
-          );
-          tempErr.status = 500;
-          reject(tempErr);
+          const tempErr = new Error(err);
+          reject(err);
         }
 
         resolve(req);

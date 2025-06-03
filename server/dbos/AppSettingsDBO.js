@@ -1,15 +1,28 @@
+import Constants from "../config/constants.js";
 import { mongoOne } from "../lib/mongoose.utils.js";
 import AppSettings from "../models/core/AppSettings.js";
 import { logg } from "../utils/logger.js";
 
 class AppSettingsDBO {
-    async getSettings({ session }) {
-        let settings = await AppSettings.find().session(session);
+
+
+
+    async getSetting({ session }) {
+        let settings = await AppSettings.findOne().session(session);
         if (!settings || settings.length === 0) {
             let newSettings = new AppSettings();
-            return await newSettings.save({ session });
+            await newSettings.save({ session });
         }
-        return mongoOne(settings);
+        return mongoOne(await this.query({ session }));
+    }
+
+    async get({ session }) {
+        let settings = await AppSettings.findOne().session(session);
+        if (!settings || settings.length === 0) {
+            let newSettings = new AppSettings();
+            await newSettings.save({ session });
+        }
+        return await AppSettings.findOne().session(session);
     }
 
     async updateSettings(area, settings = {}, { session }) {
@@ -47,7 +60,7 @@ class AppSettingsDBO {
     }
 
     async updateGeneralSettings(settings, { session }) {
-        let appSettings = await this.getSettings({ session });
+        let appSettings = await this.get({ session });
         if (settings.name) appSettings.general.name = settings.name;
         if (settings.description) appSettings.general.description = settings.description;
         if (settings.logo) appSettings.general.logo = settings.logo;
@@ -55,11 +68,12 @@ class AppSettingsDBO {
         if (settings.primaryColor) appSettings.general.primaryColor = settings.primaryColor;
         if (settings.secondaryColor) appSettings.general.secondaryColor = settings.secondaryColor;
         if (settings.tertiaryColor) appSettings.general.tertiaryColor = settings.tertiaryColor;
-        return await appSettings.save({ session, new: true });
+        await appSettings.save({ session, new: true });
+        return mongoOne(await this.query({ session }));
     }
 
     async updateContactSettings(settings, { session }) {
-        let appSettings = await this.getSettings({ session });
+        let appSettings = await this.get({ session });
         if (settings.email) appSettings.contact.email = settings.email;
         if (settings.phone) appSettings.contact.phone = settings.phone;
         if (settings.address) appSettings.contact.address = settings.address;
@@ -71,7 +85,7 @@ class AppSettingsDBO {
     }
 
     async updateSocialSettings(settings, { session }) {
-        let appSettings = await this.getSettings({ session });
+        let appSettings = await this.get({ session });
         if (settings.facebook) appSettings.social.facebook = settings.facebook;
         if (settings.twitter) appSettings.social.twitter = settings.twitter;
         if (settings.instagram) appSettings.social.instagram = settings.instagram;
@@ -81,7 +95,7 @@ class AppSettingsDBO {
     }
 
     async updateSeoSettings(settings, { session }) {
-        let appSettings = await this.getSettings({ session });
+        let appSettings = await this.get({ session });
         if (settings.title) appSettings.seo.title = settings.title;
         if (settings.description) appSettings.seo.description = settings.description;
         if (settings.keywords) appSettings.seo.keywords = settings.keywords;
@@ -89,7 +103,7 @@ class AppSettingsDBO {
     }
 
     async updateAnalyticsSettings(settings, { session }) {
-        let appSettings = await this.getSettings({ session });
+        let appSettings = await this.get({ session });
         if (settings.google) appSettings.analytics.google = settings.google;
         if (settings.facebook) appSettings.analytics.facebook = settings.facebook;
         if (settings.twitter) appSettings.analytics.twitter = settings.twitter;
@@ -98,7 +112,7 @@ class AppSettingsDBO {
     }
 
     async updateControlSettings(settings, { session }) {
-        let appSettings = await this.getSettings({ session });
+        let appSettings = await this.get({ session });
         if (settings.isMaintenance) appSettings.controls.isMaintenance = settings.isMaintenance;
         if (settings.isUnderConstruction) appSettings.controls.isUnderConstruction = settings.isUnderConstruction;
         if (settings.isLive) appSettings.controls.isLive = settings.isLive;
@@ -106,7 +120,7 @@ class AppSettingsDBO {
     }
 
     async updateCredentialEmailSettings(settings, { session }) {
-        let appSettings = await this.getSettings({ session });
+        let appSettings = await this.get({ session });
         if (settings.host) appSettings.credentials.email.host = settings.host;
         if (settings.port) appSettings.credentials.email.port = settings.port;
         if (settings.secure) appSettings.credentials.email.secure = settings.secure;
@@ -116,21 +130,21 @@ class AppSettingsDBO {
     }
 
     async updateCredentialSmsSettings(settings, { session }) {
-        let appSettings = await this.getSettings({ session });
+        let appSettings = await this.get({ session });
         if (settings.apiKey) appSettings.credentials.sms.apiKey = settings.apiKey;
         if (settings.senderId) appSettings.credentials.sms.senderId = settings.senderId;
         return await appSettings.save({ session, new: true });
     }
 
     async updateCredentialPushSettings(settings, { session }) {
-        let appSettings = await this.getSettings({ session });
+        let appSettings = await this.get({ session });
         if (settings.apiKey) appSettings.credentials.push.apiKey = settings.apiKey;
         if (settings.senderId) appSettings.credentials.push.senderId = settings.senderId;
         return await appSettings.save({ session, new: true });
     }
 
     async updateSecuritySettings(settings, { session }) {
-        let appSettings = await this.getSettings({ session });
+        let appSettings = await this.get({ session });
         if (settings.sessionTimeout) appSettings.security.sessionTimeout = settings.sessionTimeout;
         if (settings.maxLoginAttempts) appSettings.security.maxLoginAttempts = settings.maxLoginAttempts;
         if (settings.lockoutDuration) appSettings.security.lockoutDuration = settings.lockoutDuration;
@@ -140,7 +154,7 @@ class AppSettingsDBO {
     }
 
     async updateAppSettings(settings, { session }) {
-        let appSettings = await this.getSettings({ session });
+        let appSettings = await this.get({ session });
         if (settings.timezone) appSettings.settings.timezone = settings.timezone;
         if (settings.currency) appSettings.settings.currency = settings.currency;
         if (settings.language) appSettings.settings.language = settings.language;
@@ -148,7 +162,7 @@ class AppSettingsDBO {
     }
 
     async updateApiLimits(settings, { session }) {
-        let appSettings = await this.getSettings({ session });
+        let appSettings = await this.get({ session });
         logg(settings);
         if (settings.maxRetry) appSettings.apiLimits.maxRetry = settings.maxRetry;
         if (settings.sessionCount) appSettings.apiLimits.sessionCount = settings.sessionCount;
@@ -156,7 +170,7 @@ class AppSettingsDBO {
     }
 
     async updateAppVersion(settings, { session }) {
-        let appSettings = await this.getSettings({ session });
+        let appSettings = await this.get({ session });
         if (settings.ios) {
             if (settings.ios.version) appSettings.app.version.ios.version = settings.ios.version;
             if (settings.ios.build) appSettings.app.version.ios.build = settings.ios.build;
@@ -185,6 +199,83 @@ class AppSettingsDBO {
             existing.changelogs.push(change);
         }
         return existing.changelogs;
+    }
+
+    getPublicSettings(settings) {
+        if (!settings) return null;
+        return {
+            general: settings.general,
+            contact: settings.contact,
+            social: settings.social,
+            seo: settings.seo,
+            analytics: settings.analytics,
+            controls: settings.controls,
+            app: settings.app,
+            createdAt: settings.createdAt,
+            updatedAt: settings.updatedAt,
+        };
+    }
+
+    async query({ session }) {
+        const baseImagePath = Constants.paths.public_url;
+
+        const pipeline = [
+            {
+                $project: {
+                    _id: 0,
+
+                    general: {
+                        name: 1,
+                        description: 1,
+                        logo: { $concat: [baseImagePath, { $ifNull: ["$general.logo", ""] }] },
+                        favicon: { $concat: [baseImagePath, { $ifNull: ["$general.favicon", ""] }] },
+                        primaryColor: 1,
+                        secondaryColor: 1,
+                        tertiaryColor: 1,
+                    },
+
+                    contact: 1,
+                    social: 1,
+                    seo: 1,
+                    analytics: 1,
+                    controls: 1,
+                    credentials: 1,
+                    security: 1,
+                    settings: 1,
+                    apiLimits: 1,
+
+                    app: {
+                        version: {
+                            ios: {
+                                version: 1,
+                                build: 1,
+                                forceUpdate: 1,
+                                updateMessage: 1,
+                                url: 1,
+                                changelogs: 1,
+                            },
+                            android: {
+                                version: 1,
+                                build: 1,
+                                forceUpdate: 1,
+                                updateMessage: 1,
+                                url: 1,
+                                changelogs: 1,
+                            },
+                        },
+                    },
+
+                    createdAt: 1,
+                    updatedAt: 1,
+                },
+            },
+        ];
+
+        // Execute aggregation with session if provided
+        const results = await AppSettings.aggregate(pipeline).session(session).exec();
+
+        // Return single settings doc or null if none found
+        return results.length > 0 ? results[0] : null;
     }
 
 }

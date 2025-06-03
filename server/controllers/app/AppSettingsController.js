@@ -13,7 +13,7 @@ class AppSettingsController {
     }));
 
     updateSettings = catchAsync(async (req, res) => await withTransaction(async (session) => {
-        logg('updateSettings', req.body);
+        // logg('updateSettings', req.body);
         const updatedSettings = await AppSettingsDBO.updateSettings(req.body.area, req.body.settings, { session });
         res.status(httpStatus.OK).json(resConv(updatedSettings));
     }))

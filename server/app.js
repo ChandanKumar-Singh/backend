@@ -21,8 +21,14 @@ import { dirname } from './utils/PathUtils.js';
 import { HttpStatusCode } from 'axios';
 const app = express();
 
+const allowedOrigins = [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://localhost:5001",
+    "http://localhost:5173",
+];
 app.use(cors({
-    origin: ["http://localhost:3002", "http://localhost:5173", "http://localhost:3000", "http://localhost:5001"],
+    origin: allowedOrigins,
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -60,6 +66,7 @@ app.use(
                 frameSrc: ["'none'"],
             },
         },
+        crossOriginResourcePolicy: { policy: "cross-origin" },
     })
 );
 
@@ -69,22 +76,21 @@ app.use(expressvalidator.check());
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
 
-app.use("/public", express.static(Constants.paths.root_public));
+
+app.use("/public", express.static(Constants.paths.root_public, {
+   /*  setHeaders: (res, path, stat) => {
+        const origin = res.req.headers.origin;
+        if (allowedOrigins.includes(origin)) {
+            res.setHeader('Access-Control-Allow-Origin', origin);
+            res.setHeader('Access-Control-Allow-Credentials', 'true');
+        }
+    } */
+}));
 
 // Connect to database
 connectDB();
 
-// app.use('/api/hello', (r, s) => s.send('OKs'));
-
-// Serve static React files
-
-// STATIC REACT FILES
-// const clientBuildPath = path.join(__dirname, '../client/build');
 app.use('/', router);
-
-// app.use(express.static(clientBuildPath));
-
-
 
 
 app.use((req, res) => {
