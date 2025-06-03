@@ -141,6 +141,8 @@ const paths = {
     DEFAULT_NO_IMAGE: "no_image.png",
     DEFAULT_USER_IMAGE_PATH: "user_images/",
     DEFAULT_SUPPORT_IMAGE_PATH: "support/",
+    DEFAULT_LOGO_IMAGE_PATH: "logo/",
+    DEFAULT_DEFAULT_IMAGE_PATH: "assets/",
 };
 
 // Device configurations
