@@ -43,6 +43,12 @@ const analytics = Joi.object({
     linkedin: Joi.string().allow('', null),
 })
 
+const controls = Joi.object({
+    isMaintenance: Joi.bool().allow("", null),
+    isUnderConstruction: Joi.bool().allow("", null),
+    isLive: Joi.bool().allow("", null),
+})
+
 const credentials_email = Joi.object({
     host: Joi.string().allow('', null),
     port: Joi.string().allow('', null),
@@ -105,7 +111,7 @@ export const update = {
     body: {
         area: Joi.string()
             .valid(
-                'general', 'contact', 'social', 'seo', 'analytics', 'credentials_email', 'credentials_sms', 'credentials_push',
+                'general', 'contact', 'social', 'seo', 'analytics', "controls", 'credentials_email', 'credentials_sms', 'credentials_push',
                 'security', 'settings', 'apiLimits', 'app_version'
             )
             .required(),
@@ -115,6 +121,7 @@ export const update = {
             social,
             seo,
             analytics,
+            controls,
             credentials_email,
             credentials_sms,
             credentials_push,
@@ -122,7 +129,7 @@ export const update = {
             settings,
             apiLimits,
             app_version,
-        }).or('general', 'contact', 'social', 'seo', 'analytics', 'credentials_email', 'credentials_sms', 'credentials_push', 'security', 'settings', 'apiLimits', 'app_version').required(),
+        }).or('general', 'contact', 'social', 'seo', 'analytics', "controls", 'credentials_email', 'credentials_sms', 'credentials_push', 'security', 'settings', 'apiLimits', 'app_version').required(),
     }
 }
 
