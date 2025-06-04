@@ -1,0 +1,17 @@
+{
+  "US": [
+    { "id": "101", "code": "CA", "name": "California", "countryCode": "US" },
+    { "id": "102", "code": "TX", "name": "Texas", "countryCode": "US" },
+    { "id": "103", "code": "NY", "name": "New York", "countryCode": "US" }
+  ],
+  "CA": [
+    { "id": "201", "code": "ON", "name": "Ontario", "countryCode": "CA" },
+    { "id": "202", "code": "QC", "name": "Quebec", "countryCode": "CA" },
+    { "id": "203", "code": "BC", "name": "British Columbia", "countryCode": "CA" }
+  ],
+  "IN": [
+    { "id": "301", "code": "MH", "name": "Maharashtra", "countryCode": "IN" },
+    { "id": "302", "code": "KA", "name": "Karnataka", "countryCode": "IN" },
+    { "id": "303", "code": "DL", "name": "Delhi", "countryCode": "IN" }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "US": [
+    { "id": "1001", "code": "LA", "name": "Los Angeles", "stateCode": "CA" },
+    { "id": "1002", "code": "SF", "name": "San Francisco", "stateCode": "CA" },
+    { "id": "1003", "code": "SD", "name": "San Diego", "stateCode": "CA" },
+    { "id": "1004", "code": "NYC", "name": "New York City", "stateCode": "NY" },
+    { "id": "1005", "code": "BUF", "name": "Buffalo", "stateCode": "NY" },
+    { "id": "1006", "code": "ALB", "name": "Albany", "stateCode": "NY" },
+    { "id": "1007", "code": "CHI", "name": "Chicago", "stateCode": "IL" },
+    { "id": "1008", "code": "SPI", "name": "Springfield", "stateCode": "IL" }
+  ],
+  "CA": [
+    { "id": "2001", "code": "TOR", "name": "Toronto", "stateCode": "ON" },
+    { "id": "2002", "code": "OTT", "name": "Ottawa", "stateCode": "ON" },
+    { "id": "2003", "code": "HAM", "name": "Hamilton", "stateCode": "ON" },
+    { "id": "2004", "code": "VAN", "name": "Vancouver", "stateCode": "BC" },
+    { "id": "2005", "code": "VIC", "name": "Victoria", "stateCode": "BC" },
+    { "id": "2006", "code": "KEL", "name": "Kelowna", "stateCode": "BC" },
+    { "id": "2007", "code": "MTL", "name": "Montreal", "stateCode": "QC" },
+    { "id": "2008", "code": "QUE", "name": "Quebec City", "stateCode": "QC" }
+  ],
+  "IN": [
+    { "id": "3001", "code": "DEL", "name": "Delhi", "stateCode": "DL" },
+    { "id": "3002", "code": "NDL", "name": "New Delhi", "stateCode": "DL" },
+    { "id": "3003", "code": "MUM", "name": "Mumbai", "stateCode": "MH" },
+    { "id": "3004", "code": "PUN", "name": "Pune", "stateCode": "MH" },
+    { "id": "3005", "code": "NGP", "name": "Nagpur", "stateCode": "MH" },
+    { "id": "3006", "code": "BLR", "name": "Bengaluru", "stateCode": "KA" },
+    { "id": "3007", "code": "MYS", "name": "Mysore", "stateCode": "KA" },
+    { "id": "3008", "code": "UBL", "name": "Hubli-Dharwad", "stateCode": "KA" }
+  ]
+}

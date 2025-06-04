@@ -6,6 +6,7 @@ import AppSettingsController from '../../../controllers/admin/AppSettingsControl
 
 const router = Router();
 
+router.post('/lists', AppSettingsController.getCommonLists);
 router.get('/', AuthOptionalMiddleware, AdminMiddleware, AppSettingsController.detail);
 router.post('/update', AdminMiddleware, AppSettingsController.uploadImage, SchemaValidator(AppSettingSchema.update), AppSettingsController.updateSettings);
 

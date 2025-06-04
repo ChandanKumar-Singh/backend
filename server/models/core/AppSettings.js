@@ -64,7 +64,7 @@ const AppSettingSchema = new mongoose.Schema(
         credentials: {
             email: {
                 host: { type: String, default: '' },
-                port: { type: String, default: '' },
+                port: { type: Number},
                 secure: { type: Boolean, default: false },
                 user: { type: String, default: '' },
                 pass: { type: String, default: '' },

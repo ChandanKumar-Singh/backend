@@ -8,6 +8,7 @@ class AppSettingsDBO {
 
 
     async getSetting({ session }) {
+        /// TODO: Redis Implementation
         let settings = await AppSettings.findOne().session(session);
         if (!settings || settings.length === 0) {
             let newSettings = new AppSettings();
@@ -40,6 +41,8 @@ class AppSettingsDBO {
                 return await this.updateAnalyticsSettings(settings, { session });
             case 'controls':
                 return await this.updateControlSettings(settings, { session });
+            case 'credentials':
+                return await this.updateCredentialsSettings(settings, { session });
             case 'credentials_email':
                 return await this.updateCredentialEmailSettings(settings, { session });
             case 'credentials_sms':
@@ -116,6 +119,26 @@ class AppSettingsDBO {
         if (settings.isMaintenance) appSettings.controls.isMaintenance = settings.isMaintenance;
         if (settings.isUnderConstruction) appSettings.controls.isUnderConstruction = settings.isUnderConstruction;
         if (settings.isLive) appSettings.controls.isLive = settings.isLive;
+        return await appSettings.save({ session, new: true });
+    }
+
+    async updateCredentialsSettings(settings, { session }) {
+        let appSettings = await this.get({ session });
+        if (settings.email) {
+            if (settings.email.host) appSettings.credentials.email.host = settings.email.host;
+            if (settings.email.port) appSettings.credentials.email.port = settings.email.port;
+            if (settings.email.secure) appSettings.credentials.email.secure = settings.email.secure;
+            if (settings.email.user) appSettings.credentials.email.user = settings.email.user;
+            if (settings.email.pass) appSettings.credentials.email.pass = settings.email.pass;
+        }
+        if (settings.sms) {
+            if (settings.sms.apiKey) appSettings.credentials.sms.apiKey = settings.sms.apiKey;
+            if (settings.sms.senderId) appSettings.credentials.sms.senderId = settings.sms.senderId;
+        }
+        if (settings.push) {
+            if (settings.push.apiKey) appSettings.credentials.push.apiKey = settings.push.apiKey;
+            if (settings.push.senderId) appSettings.credentials.push.senderId = settings.push.senderId;
+        }
         return await appSettings.save({ session, new: true });
     }
 
