@@ -26,7 +26,8 @@ class Assets {
 
     // ✅ JSON Files (For Configurations or Mock Data)
     static json = {
-        config: Assets.loadJson('config/app-config.json'),
+        config: this.loadJson('config/app-config.json'),
+        countries: this.loadData('./countries.json'),
     };
 
     /**
@@ -63,6 +64,15 @@ class Assets {
     static loadJson(filePath) {
         try {
             return require(`../public/${filePath}`);
+        } catch (error) {
+            console.warn(`❌ JSON Not Found: ${filePath}`);
+            return {};
+        }
+    }
+
+    static loadData(filePath) {
+        try {
+            return require(`${filePath}`);
         } catch (error) {
             console.warn(`❌ JSON Not Found: ${filePath}`);
             return {};

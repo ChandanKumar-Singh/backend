@@ -67,11 +67,31 @@ const credentials_push = Joi.object({
     senderId: Joi.string().allow('', null),
 })
 
+// // Define credentials object containing all three nested parts
 const credentials = Joi.object({
-    credentials_email,
-    credentials_sms,
-    credentials_push,
-})
+    email: Joi.object({
+        host: Joi.string().allow('', null),
+        port: Joi.string().allow('', null),
+        secure: Joi.boolean().default(false),
+        user: Joi.string().allow('', null),
+        pass: Joi.string().allow('', null),
+    }),
+    sms: Joi.object({
+        apiKey: Joi.string().allow('', null),
+        senderId: Joi.string().allow('', null),
+    }),
+    push: Joi.object({
+        apiKey: Joi.string().allow('', null),
+        senderId: Joi.string().allow('', null),
+    }),
+});
+
+
+// const credentials = Joi.object({
+//     credentials_email,
+//     credentials_sms,
+//     credentials_push,
+// })
 
 const security = Joi.object({
     sessionTimeout: Joi.number().default(30), // in minutes
@@ -111,7 +131,9 @@ export const update = {
     body: {
         area: Joi.string()
             .valid(
-                'general', 'contact', 'social', 'seo', 'analytics', "controls", 'credentials_email', 'credentials_sms', 'credentials_push',
+                'general', 'contact', 'social', 'seo', 'analytics', "controls", 
+                // 'credentials_email', 'credentials_sms', 'credentials_push',
+                "credentials",
                 'security', 'settings', 'apiLimits', 'app_version'
             )
             .required(),
@@ -122,14 +144,18 @@ export const update = {
             seo,
             analytics,
             controls,
-            credentials_email,
-            credentials_sms,
-            credentials_push,
+            // credentials_email,
+            // credentials_sms,
+            // credentials_push,
+            credentials,
             security,
             settings,
             apiLimits,
             app_version,
-        }).or('general', 'contact', 'social', 'seo', 'analytics', "controls", 'credentials_email', 'credentials_sms', 'credentials_push', 'security', 'settings', 'apiLimits', 'app_version').required(),
+        }).or('general', 'contact', 'social', 'seo', 'analytics', "controls", 
+            // 'credentials_email', 'credentials_sms', 'credentials_push', 
+            "credentials",
+            'security', 'settings', 'apiLimits', 'app_version').required(),
     }
 }
 

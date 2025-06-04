@@ -6,6 +6,7 @@ import AppSettingsDBO from '../../dbos/AppSettingsDBO.js';
 import { logg } from '../../utils/logger.js';
 import FileUploadUtils from '../../utils/FileUpload.utils.js';
 import Constants from '../../config/constants.js';
+import CommonDBO from '../../dbos/CommonDBO.js';
 
 class AppSettingsController {
     uploadImage = catchAsync(async (req, res, next) => {
@@ -52,6 +53,15 @@ class AppSettingsController {
         const updatedSettings = await AppSettingsDBO.updateSettings(req.body.area, req.body.settings, { session });
         res.status(httpStatus.OK).json(resConv(updatedSettings));
     }))
+
+    getCommonLists = catchAsync(async (req, res) => await withTransaction(async (session) => {
+        const { key } = req.body;
+        const lists = await CommonDBO.getCommonLists(key, req.body, { session });
+        res.status(httpStatus.OK).json(resConv(lists));
+    }))
+
+
+    ////////////////////////// 
 
     uploadGeneralAssets(req, res) {
         return FileUploadUtils.uploadFiles(
