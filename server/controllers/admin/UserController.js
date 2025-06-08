@@ -9,6 +9,7 @@ import UserDBO from "../../dbos/UserDBO.js";
 import { logg } from "../../utils/logger.js";
 import AuthenticateDBO from "../../dbos/AuthenticateDBO.js";
 import EmailService from "../../services/EmailService.js";
+import ResponseCodes from "../../config/ResponseCodes.js";
 
 class UserController {
   uploadImage = catchAsync(async (req, res, next) => {
@@ -58,9 +59,13 @@ class UserController {
   update = catchAsync(async (req, res) =>
     withTransaction(async (session) => {
       const response = await UserDBO.update(req.body, { session });
-      res.status(httpStatus.OK).send(resConv(response));
+      res.status(httpStatus.OK).send(resConv(response, ResponseCodes.SUCCESS_MESSAGES.USER_UPDATED));
     })
   );
+  delete = catchAsync(async (req, res) => withTransaction(async (session) => {
+    const response = await UserDBO.delete(req.body.id, { session });
+    res.status(httpStatus.OK).send(resConv(null, response.message));
+  }));
 
   isExists = catchAsync(async (req, res) => {
     const { id, contact, type } = req.body;

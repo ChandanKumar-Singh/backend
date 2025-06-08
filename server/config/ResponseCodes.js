@@ -44,6 +44,8 @@
     EMAIL_OTP_SENT: 'An OTP has been sent to ${email}.',
     OPERATION_SUCCESS: 'Operation completed successfully.',
     RESOURCE_CREATED: 'Resource created successfully.',
+    USER_DELETED: 'User deleted successfully.',
+    USER_UPDATED: (name) => `${name}'s profile updated successfully.`,
   },
 
   // Informational Messages

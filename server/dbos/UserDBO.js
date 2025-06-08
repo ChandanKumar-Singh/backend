@@ -281,7 +281,7 @@ class UserDBO {
   };
 
   update = async (data, { session, sendMail = false, sendOtp = false }) => {
-    const { id, image, name, email, contact, fcmToken, deviceId } = data;
+    const { id, image, name, email, contact, country_code, fcmToken, deviceId } = data;
     const user = await UserModel.findById(mObj(id)).session(session);
     if (!user) throw new ApiError(httpStatus.NOT_FOUND, "User not found");
     if (image) {
@@ -303,9 +303,10 @@ class UserDBO {
       }
     }
     if (contact) {
-      const { phone, country_code } = getCountryContact(contact);
+      const { contact: phone, code } = getCountryContact(`${country_code} ${contact}`);
       user.contact = phone;
-      user.country_code = country_code;
+      user.country_code = code;
+      console.log('sendOtp', sendOtp, phone, code, country_code, contact)
       if (sendOtp)
         return await AuthenticateDBO.sendOtp(
           phone,
@@ -325,6 +326,13 @@ class UserDBO {
       data: { user: user._id },
     });
     return await this.getById(mObj(id), { session });
+  };
+
+  delete = async (id) => {
+    const user = await UserModel.findById(mObj(id));
+    if (!user) throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+    await user.deleteOne();
+    return { message: ResponseCodes.SUCCESS_MESSAGES.USER_DELETED };
   };
 
   purgeCache = async (userId) => {
