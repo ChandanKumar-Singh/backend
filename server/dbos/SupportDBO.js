@@ -9,7 +9,7 @@ import {
 import { infoLog, logg, logger } from "../utils/logger.js";
 import httpStatus from "http-status";
 import EventService from "../services/EventService.js";
-import RedisService from "../services/RedisService.js";
+import { Redis } from "../services/RedisService.js";
 import NotificationService from "../services/notification_service/NotificationService.js";
 import ApiError from "../middlewares/ApiError.js";
 import NotificationMessages from "../config/notificationMessages.js";
@@ -323,7 +323,7 @@ class SupportDBO {
     };
 
     getById = async (id, { session = null, shouldForce = false } = {}) => {
-        const redisData = await RedisService.hget(...RedisKeys.TICKET_DETAILS(id));
+        const redisData = await Redis.hget(...RedisKeys.TICKET_DETAILS(id));
         if (redisData && !shouldForce) {
             return redisData;
         } else {
@@ -334,7 +334,7 @@ class SupportDBO {
                 })
             );
             if (obj) {
-                RedisService.hset(...RedisKeys.TICKET_DETAILS(id), obj);
+                Redis.hset(...RedisKeys.TICKET_DETAILS(id), obj);
                 return obj;
             }
             return null;
@@ -342,7 +342,7 @@ class SupportDBO {
     };
 
     getReplyById = async (id, { session = null, shouldForce = false } = {}) => {
-        const redisData = await RedisService.hget(...RedisKeys.TICKET_REPLY_DETAILS(id));
+        const redisData = await Redis.hget(...RedisKeys.TICKET_REPLY_DETAILS(id));
         if (redisData && !shouldForce) {
             return redisData;
         } else {
@@ -353,7 +353,7 @@ class SupportDBO {
                 })
             );
             if (obj) {
-                RedisService.hset(...RedisKeys.TICKET_REPLY_DETAILS(id), obj);
+                Redis.hset(...RedisKeys.TICKET_REPLY_DETAILS(id), obj);
                 return obj;
             }
             return null;
@@ -418,7 +418,7 @@ class SupportDBO {
 
     purgeCache = async (ticketId) => {
         if (!ticketId) return;
-        await RedisService.hdel(...RedisKeys.TICKET_DETAILS(ticketId));
+        await Redis.hdel(...RedisKeys.TICKET_DETAILS(ticketId));
     };
 
     sendTicketNotification = async (ticketId, payload) => {

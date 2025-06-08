@@ -8,7 +8,7 @@ import ResponseCodes from "../config/ResponseCodes.js";
 import resConv from "../utils/resConv.js";
 import { logg, warnLog } from "../utils/logger.js";
 import httpStatus from "http-status";
-import RedisService from "../services/RedisService.js";
+import { Redis } from "../services/RedisService.js";
 import ApiError from "./ApiError.js";
 import RedisKeys from "../lib/RedisKeys.js";
 
@@ -36,7 +36,7 @@ const verifyToken = (token, req, role) => {
 
         if (Constants.Redis.Enabled === true) {
           // logg("🔍 Fetching Redis Data:", Constants.Redis.Enabled);
-          const data = await RedisService.hget(...RedisKeys.AuthKey(role, decoded.id));
+          const data = await Redis.hget(...RedisKeys.AuthKey(role, decoded.id));
           const decodedData = data;
           // warnLog("Decoded JWT:", decoded, role , data);
           // warnLog("Decoded Redis Data:", decodedData);

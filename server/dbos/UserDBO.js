@@ -7,7 +7,7 @@ import httpStatus from "http-status";
 import AuthenticateDBO from "./AuthenticateDBO.js";
 import FileUploadUtils from "../utils/FileUpload.utils.js";
 import EventService from "../services/EventService.js";
-import RedisService from "../services/RedisService.js";
+import { Redis } from "../services/RedisService.js";
 import { name } from "ejs";
 import NotificationService from "../services/notification_service/NotificationService.js";
 import {
@@ -230,7 +230,7 @@ class UserDBO {
   };
 
   getById = async (id, { session = null, shouldForce = false } = {}) => {
-    const redisData = await RedisService.hget(...RedisKeys.USER_DETAILS(id));
+    const redisData = await Redis.hget(...RedisKeys.USER_DETAILS(id));
     if (redisData && !shouldForce) {
       return redisData;
     } else {
@@ -241,7 +241,7 @@ class UserDBO {
         })
       );
       if (obj) {
-        RedisService.hset(...RedisKeys.USER_DETAILS(id), obj);
+        Redis.hset(...RedisKeys.USER_DETAILS(id), obj);
         return obj;
       }
       return null;
@@ -304,11 +304,11 @@ class UserDBO {
     }
     if (contact) {
       const { phone, country_code } = getCountryContact(contact);
-        user.contact = phone;
+      user.contact = phone;
       user.country_code = country_code;
       if (sendOtp)
         return await AuthenticateDBO.sendOtp(
-            phone,
+          phone,
           user.type === Constants.roles.type.ADMIN,
           { session }
         );
@@ -333,7 +333,7 @@ class UserDBO {
             if (usersData) {
              /// user data basis dispatches
             } */
-    await RedisService.hdel(...RedisKeys.USER_DETAILS(userId));
+    await Redis.hdel(...RedisKeys.USER_DETAILS(userId));
   };
 
   sendUserNotification = async (userId, payload) => {
