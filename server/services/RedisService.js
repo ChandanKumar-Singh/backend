@@ -1,26 +1,32 @@
 import { createClient } from 'redis';
 import Constants from '../config/constants.js';
-import { errorLog, greenLog, infoLog, logg, logger, warnLog } from '../utils/logger.js';
+import { errorLog, greenLog } from '../utils/logger.js';
+import { initSocket } from './sockets/index.js';
 
+const createRedisClient = () => createClient({ url: `redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT}` });
+const redisClient = createRedisClient();
+const redisPublisher = createRedisClient();
+const redisSubscriber = redisClient;
+redisSubscriber.on('error', (err) => errorLog('❌ Redis Error:', err));
+redisSubscriber.on('connect', () => greenLog('✅ Connected to Redis'));
 
-class RedisService {
+class RedisServices {
     constructor() {
         this.REDIS_KEY = (Constants.Redis.KEY || '') + ':';
         this.ENABLED = Constants.Redis.Enabled || false;
         if (this.ENABLED) {
-            this.client = createClient({ url: `redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT}` });
-            this.client.on('connect', () => { greenLog('✅ Connected to Redis'); });
-            this.client.on('error', (err) => errorLog('❌ Redis Error:', err));
+            this.client = redisClient;
         } else {
             console.log('🚮 Redis is disabled. Running without cache.');
         }
     }
 
-    async start() {
+    async start(server) {
         if (!this.ENABLED) return;
         try {
             await this.client.connect();
             await this.deleteAll();
+            initSocket(server);
         } catch (err) {
             errorLog('❌ Redis Start Error:', err);
         }
@@ -32,7 +38,7 @@ class RedisService {
         try {
             let data = encode ? JSON.stringify(value) : value;
             // infoLog('Setting redis field:', this.REDIS_KEY + hashKey, field?.toString(), data);
-            let res = await this.client.hSet(this.REDIS_KEY + hashKey, field?.toString(),data);
+            let res = await this.client.hSet(this.REDIS_KEY + hashKey, field?.toString(), data);
             if (expiry > 0) {
                 await this.client.expire(this.REDIS_KEY + hashKey, expiry);
             }
@@ -114,5 +120,8 @@ class RedisService {
         }
     }
 }
+const Redis = new RedisServices();
 
-export default new RedisService();
+export { redisSubscriber, redisPublisher, Redis };
+
+// export default new RedisService();

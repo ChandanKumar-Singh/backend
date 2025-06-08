@@ -12,7 +12,7 @@ import AuthenticateUtils from "../lib/AuthenticateUtils.js";
 import { logg } from "../utils/logger.js";
 import { generateVerificationCode, isEmail, isValidEmail } from "../utils/Helper.utils.js";
 import RolesUtil from "../lib/RolesUtil.js";
-import RedisService from "../services/RedisService.js";
+import { Redis } from "../services/RedisService.js";
 import DeviceInfo from "../models/core/DeviceInfo.js";
 import NotificationPreferenceDBO from "./notification/NotificationPreferenceDBO.js";
 import EmailService from "../services/EmailService.js";
@@ -65,7 +65,7 @@ class AuthenticateDBO {
     const userDetails = await UserDBO.getById(tempAuth._id, {
       session: session,
     });
-    await RedisService.hset(
+    await Redis.hset(
       ...RedisKeys.AdminAuth(tempAuth._id),
       {
         uniquekey: uniqueKey,
@@ -90,7 +90,7 @@ class AuthenticateDBO {
       session: session,
     });
 
-    await RedisService.hset(
+    await Redis.hset(
       ...RedisKeys.UserAuth(tempAuth._id),
       {
         uniquekey: uniqueKey,
@@ -301,7 +301,7 @@ class AuthenticateDBO {
   };
 
   logoutUser = async (userId) => {
-    await RedisService.hdel(...RedisKeys.UserAuth(userId));
+    await Redis.hdel(...RedisKeys.UserAuth(userId));
     DeviceInfo.updateMany({ userId: mObj(userId) }, { fcmToken: null });
     UserDBO.update({
       id: userId,
@@ -447,7 +447,7 @@ class AuthenticateDBO {
     if (user) {
       user.status = Constants.USER_STATUS.DELETED;
       await user.save();
-      await RedisService.hdel(...RedisKeys.UserAuth(userId));
+      await Redis.hdel(...RedisKeys.UserAuth(userId));
       await DeviceInfo.updateMany({ userId: mObj(userId) }, { fcmToken: null });
       await UserDBO.update({
         id: userId,
