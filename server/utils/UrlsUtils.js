@@ -27,21 +27,33 @@ export function generateYoutubeUrl(url){
 
 
 export function getCountryContact(contact) {
-    if (contact) {
-        const splitData = contact.split(' ');
-        if (splitData.length > 1) {
-            let country = splitData.shift();
-            if (country && !/(\+)/i.test(country)) {
-                country = country;
-            }
-            const uContact = splitData.join(' ');
-            const fContact = uContact.replace(/[()-/ /]/ig, '');
-            return {contact: fContact, code: country};
-        } else {
-            return {contact: splitData[0], code: '+91'};
-        }
+    if (!contact) {
+        return { contact: null, code: '+91' };
+    }
 
-    } return {contact: contact, code: '+91'};
+    const splitData = contact.trim().split(' ');
+    
+    // Single value case - assume India (+91) as default
+    if (splitData.length === 1) {
+        return {
+            contact: splitData[0].replace(/[()-/ /]/ig, ''),
+            code: '+91'
+        };
+    }
+
+    // Extract country code
+    let countryCode = splitData.shift();
+    if (!countryCode.startsWith('+')) {
+        countryCode = '+' + countryCode.replace(/[^0-9]/g, '');
+    }
+
+    // Clean and format contact number
+    const contactNumber = splitData.join(' ').replace(/[()-/ /]/ig, '');
+
+    return {
+        contact: contactNumber,
+        code: countryCode
+    };
 }
 
 
