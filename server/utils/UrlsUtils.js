@@ -36,12 +36,12 @@ export function getCountryContact(contact) {
             }
             const uContact = splitData.join(' ');
             const fContact = uContact.replace(/[()-/ /]/ig, '');
-            return {contact: fContact, country_code: country};
+            return {contact: fContact, code: country};
         } else {
-            return {contact: splitData[0], country_code: '+91'};
+            return {contact: splitData[0], code: '+91'};
         }
 
-    } return {contact: contact, country_code: '+91'};
+    } return {contact: contact, code: '+91'};
 }
 
 
