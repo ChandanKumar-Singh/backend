@@ -251,7 +251,7 @@ class UserDBO {
   getList = async (data = {}, { session = null } = {}) => {
     let builder = QueryUtils.buildQuery(data, [], ["name", "email", "contact"]);
     builder.query = [
-      { $match: { type: Constants.roles.type.USER } },
+      { $match: { type: Constants.roles.type.USER, status: { $ne: Constants.USER_STATUS.INACTIVE } } },
       ...builder.query,
     ];
     return await this.fetchUsers({ ...builder, session, paginate: true });
@@ -331,7 +331,7 @@ class UserDBO {
   delete = async (id) => {
     const user = await UserModel.findById(mObj(id));
     if (!user) throw new ApiError(httpStatus.NOT_FOUND, "User not found");
-    await user.deleteOne();
+    await user.updateOne({ $set: { status: Constants.USER_STATUS.INACTIVE } });
     return { message: ResponseCodes.SUCCESS_MESSAGES.USER_DELETED };
   };
 

@@ -1,11 +1,8 @@
-import { create } from "domain";
 import Constants from "../config/constants.js";
 import { mObj, mongoOne } from "../lib/mongoose.utils.js";
 import DeviceInfo from "../models/core/DeviceInfo.js";
 import UserModel from "../models/UserModel.js";
 import DateUtils from "../utils/DateUtils.js";
-import { logg } from "../utils/logger.js";
-import UserDBO from "./UserDBO.js";
 
 class DeviceDBO {
 
