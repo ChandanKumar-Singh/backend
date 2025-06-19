@@ -68,37 +68,37 @@ class AdminController {
 
     list = catchAsync(async (req, res) => {
         const users = await UserDBO.getAllAdmins(req);
-        res.status(httpStatus.OK).send(resConv(users));
+        res.status(200).send(resConv(users));
     });
 
     create = catchAsync(async (req, res) => withTransaction(async (session) => {
         let response = await AuthenticateDBO.createAdmin(req.body, { session: session });
-        res.status(httpStatus.OK).send(resConv(response));
+        res.status(200).send(resConv(response));
     }));
 
     login = catchAsync(async (req, res) => withTransaction(async (session) => {
         let data = req.body;
         data.username = data.email;
         let response = await AuthenticateDBO.login(data, { session: session, isAdmin: true });
-        res.status(httpStatus.OK).send(resConv(response));
+        res.status(200).send(resConv(response));
     }));
 
     verifyOTP = catchAsync(async (req, res) => withTransaction(async (session) => {
         const { username, otp } = req.body;
         let response = await AuthenticateDBO.verifyOTP(username, otp, { session: session, isAdmin: true });
-        res.status(httpStatus.OK).send(resConv(response));
+        res.status(200).send(resConv(response));
     }));
 
     deleteAll = catchAsync(async (req, res) => {
         await AuthenticateDBO.deleteAllAdmins(req);
-        res.status(httpStatus.OK).send(resConv({}));
+        res.status(200).send(resConv({}));
     });
 
 
     ////////////////// Dashboard ///////////////
     dashboardStats = catchAsync(async (req, res) => {
         const users = await UserDBO.getUserCount(req.body);
-        res.status(httpStatus.OK).send(resConv({
+        res.status(200).send(resConv({
             totalUsers: users.total,
             totalProjects: users.total,
             activeUsers: users.total,

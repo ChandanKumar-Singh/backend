@@ -43,7 +43,7 @@ class UserController {
     const { id } = req.body;
     const obj = await UserDBO.getById(mObj(id));
     if (!obj) throw new ApiError(httpStatus.NOT_FOUND, "User not found");
-    res.status(httpStatus.OK).send(resConv({ ...obj }));
+    res.status(200).send(resConv({ ...obj }));
   });
 
   create = catchAsync(async (req, res) =>
@@ -52,26 +52,26 @@ class UserController {
         session,
         processAuth: false,
       });
-      res.status(httpStatus.OK).send(resConv(response));
+      res.status(200).send(resConv(response));
     })
   );
 
   update = catchAsync(async (req, res) =>
     withTransaction(async (session) => {
       const response = await UserDBO.update(req.body, { session });
-      res.status(httpStatus.OK).send(resConv(response, ResponseCodes.SUCCESS_MESSAGES.USER_UPDATED));
+      res.status(200).send(resConv(response, { message: ResponseCodes.SUCCESS_MESSAGES.USER_UPDATED(response.fullName) }));
     })
   );
   delete = catchAsync(async (req, res) => withTransaction(async (session) => {
     const response = await UserDBO.delete(req.body.id, { session });
-    res.status(httpStatus.OK).send(resConv(null, response.message));
+    res.status(200).send(resConv(null, { message: response.message }));
   }));
 
   isExists = catchAsync(async (req, res) => {
     const { id, contact, type } = req.body;
     const isExists = await UserDBO.getById(id);
     res
-      .status(httpStatus.OK)
+      .status(200)
       .send(resConv({ is_exists: isExists !== undefined }));
   });
 
@@ -79,17 +79,17 @@ class UserController {
     const users = await UserDBO.getList({
       ...req.body,
     });
-    res.status(httpStatus.OK).send(resConv(users));
+    res.status(200).send(resConv(users));
   });
 
   adminList = catchAsync(async (req, res) => {
     const response = await UserDBO.getAllAdmins();
-    res.status(httpStatus.OK).send(resConv(response));
+    res.status(200).send(resConv(response));
   });
 
   appUserList = catchAsync(async (req, res) => {
     const response = await UserDBO.getAppuserList(req);
-    res.status(httpStatus.OK).send(resConv(response));
+    res.status(200).send(resConv(response));
   });
 
   changePassword = catchAsync(async (req, res) => {
@@ -100,25 +100,25 @@ class UserController {
       password,
       // share_password,
     });
-    ResUtils.status(httpStatus.OK).send(res, resConv(response));
+    ResUtils.status(200).send(res, resConv(response));
   });
 
   autocomplete = catchAsync(async (req, res) => {
     const { contact, event_id } = req.body;
     const response = await UserDBO.autocomplete(contact, event_id);
-    res.status(httpStatus.OK).send(resConv(response));
+    res.status(200).send(resConv(response));
   });
 
   vcf = catchAsync(async (req, res) => {
     const { id } = req.body;
     const obj = await UserDBO.getVcf(mObj(id));
     if (!obj) throw new ApiError(httpStatus.NOT_FOUND, "User not found");
-    res.status(httpStatus.OK).send(resConv({ details: obj }));
+    res.status(200).send(resConv({ details: obj }));
   });
 
   exportAppUser = catchAsync(async (req, res) => {
     const response = await ExcelUtils.exportAppUser();
-    ResUtils.status(httpStatus.OK).send(res, resConv({ response }));
+    ResUtils.status(200).send(res, resConv({ response }));
   });
 
   sendMail = catchAsync(async (req, res) => {
