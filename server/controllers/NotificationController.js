@@ -6,7 +6,7 @@ import NotificationDBO from "../dbos/notification/NotificationDBO.js";
 class NotificationController {
     list = catchAsync(async (req, res) => {
         const notifications = await NotificationDBO.list();
-        res.status(httpStatus.OK).send(resConv(notifications
+        res.status(200).send(resConv(notifications
         ));
     });
 }

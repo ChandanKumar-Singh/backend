@@ -10,7 +10,7 @@ class DeviceController {
     registerDevice = catchAsync(async (req, res) => withTransaction(async (session) => {
         const deviceData = req.body;
         const device = await DeviceDBO.assignDeviceToUser(req.user.id, deviceData, { session });
-        res.status(httpStatus.OK).json(resConv(device, "Device registered successfully"));
+        res.status(200).json(resConv(device, { message: "Device registered successfully"}));
     }
     ));
 
@@ -18,9 +18,9 @@ class DeviceController {
         const { userId } = req.params;
         const devices = await DeviceDBO.getDevicesByUserId(userId, { session: null });
         if (!devices || devices.length === 0) {
-            throw new ApiError(httpStatus.NOT_FOUND, "No devices found for this user");
+            throw new ApiError(httpStatus.NOT_FOUND, { message: "No devices found for this user"});
         }
-        res.status(httpStatus.OK).json(resConv(devices));
+        res.status(200).json(resConv(devices));
     });
 
 
@@ -28,9 +28,9 @@ class DeviceController {
         const { deviceId } = req.params;
         const deleted = await DeviceDBO.deleteUserDevice(req.user.id, deviceId);
         if (!deleted) {
-            throw new ApiError(httpStatus.NOT_FOUND, "Device not found");
+            throw new ApiError(httpStatus.NOT_FOUND, { message: "Device not found"});
         }
-        res.status(httpStatus.OK).json(resConv({}, "Device removed successfully!"));
+        res.status(200).json(resConv({}, { message: "Device removed successfully!"}));
     });
 
 }

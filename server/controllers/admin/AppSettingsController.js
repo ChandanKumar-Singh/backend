@@ -43,22 +43,22 @@ class AppSettingsController {
         const authenticated = (req.optionalAuth || false) && req.user && req.user.id;
         const settings = await AppSettingsDBO.getSetting({ session });
         if (!authenticated) {
-            res.status(httpStatus.OK).send(resConv(AppSettingsDBO.getPublicSettings(settings)));
+            res.status(200).send(resConv(AppSettingsDBO.getPublicSettings(settings)));
         }
-        res.status(httpStatus.OK).send(resConv(settings));
+        res.status(200).send(resConv(settings));
     }));
 
     updateSettings = catchAsync(async (req, res) => await withTransaction(async (session) => {
         // logg('updateSettings', req.body);
         const updatedSettings = await AppSettingsDBO.updateSettings(req.body.area, req.body.settings, { session });
-        res.status(httpStatus.OK).json(resConv(updatedSettings));
+        res.status(200).json(resConv(updatedSettings));
     }))
 
-    getCommonLists = catchAsync(async (req, res) => await withTransaction(async (session) => {
+    getCommonLists = catchAsync(async (req, res) => {
         const { key } = req.body;
-        const lists = await CommonDBO.getCommonLists(key, req.body, { session });
-        res.status(httpStatus.OK).json(resConv(lists));
-    }))
+        const lists = await CommonDBO.getCommonLists(key, req.body);
+        res.status(200).json(resConv(lists));
+    })
 
 
     ////////////////////////// 

@@ -9,13 +9,13 @@ import { logg } from '../../utils/logger.js';
 class AppSettingsController {
     detail = catchAsync(async (req, res) => await withTransaction(async (session) => {
         const settings = await AppSettingsDBO.getSettings({ session });
-        res.status(httpStatus.OK).send(resConv(settings));
+        res.status(200).send(resConv(settings));
     }));
 
     updateSettings = catchAsync(async (req, res) => await withTransaction(async (session) => {
         // logg('updateSettings', req.body);
         const updatedSettings = await AppSettingsDBO.updateSettings(req.body.area, req.body.settings, { session });
-        res.status(httpStatus.OK).json(resConv(updatedSettings));
+        res.status(200).json(resConv(updatedSettings));
     }))
 }
 

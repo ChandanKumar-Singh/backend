@@ -34,7 +34,7 @@ function handleUnknownError(res) {
   loggError(null, "Unknown error occurred");
   return res
     .status(httpStatus.INTERNAL_SERVER_ERROR)
-    .json(resConv(null, "An unknown error occurred.", 0));
+    .json(resConv(null, { message: "An unknown error occurred.", code: 0 }));
 }
 
 /**
@@ -49,9 +49,11 @@ function handleApiError(err, res) {
     .json(
       resConv(
         err.error || err.errors,
-        err.message || "An error occurred",
-        0,
-        err.stack
+        {
+          message: err.message || "An error occurred",
+          code: 0,
+          stackTrace: err.stack,
+        }
       )
     );
 }
@@ -68,10 +70,12 @@ function handleValidationError(err, res) {
     .json(
       resConv(
         err.error,
-        "Validation failed.",
-        0,
-        Constants.envs.production ? null : err.stack,
-        err.errorCode || ResponseCodes.ERROR.VALIDATION_FAILED
+        {
+          message: "Validation failed.",
+          code: 0,
+          stackTrace: Constants.envs.production ? null : err.stack,
+          errorCode: err.errorCode || ResponseCodes.ERROR.VALIDATION_FAILED,
+        }
       )
     );
 }
@@ -88,9 +92,11 @@ function handleDuplicateError(err, res) {
     .json(
       resConv(
         extractDuplicateErrorMessage(err),
-        "Already exists",
-        0,
-        Constants.envs.production ? null : err.stack
+        {
+          message: "Already exists",
+          code: 0,
+          stackTrace: Constants.envs.production ? null : err.stack
+        }
       )
     );
 }
@@ -107,10 +113,12 @@ function handleUnexpectedError(err, res) {
     .json(
       resConv(
         err,
-        "Internal server error.",
-        0,
-        err,
-        Constants.IS_PRODUCTION ? null : err.stack
+        {
+          message: "Internal server error.",
+          code: 0,
+          error: err,
+          stackTrace: Constants.IS_PRODUCTION ? null : err.stack
+        }
       )
     );
 }
@@ -133,9 +141,8 @@ function extractDuplicateErrorMessage(error) {
       logg(`Duplicate key error: ${key} with ${value} already exists.`);
 
       // Return a formatted string with key and error details
-      return `${
-        key.charAt(0).toUpperCase() + key.slice(1)
-      } with ${value} already exists.`;
+      return `${key.charAt(0).toUpperCase() + key.slice(1)
+        } with ${value} already exists.`;
     }
   }
 

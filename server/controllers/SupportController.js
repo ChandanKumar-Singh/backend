@@ -33,55 +33,55 @@ class SupportController {
     });
     createTicket = catchAsync(async (req, res) => await withTransaction(async (session) => {
         const ticket = await SupportDBO.create(req.body, { session });
-        res.status(httpStatus.CREATED).json(resConv(ticket, 'Ticket created successfully'));
+        res.status(httpStatus.CREATED).json(resConv(ticket, { message: 'Ticket created successfully' }));
     }));
 
     getUserTickets = catchAsync(async (req, res) => await withTransaction(async (session) => {
         const tickets = await SupportDBO.userTickets(req.body, { session });
-        res.status(httpStatus.OK).json(resConv(tickets));
+        res.status(200).json(resConv(tickets));
     }));
 
     getTicketDetail = catchAsync(async (req, res) => {
         const ticket = await SupportDBO.getById(req.body.id);
         if (!ticket) throw new ApiError(httpStatus.NOT_FOUND, 'Ticket not found');
-        res.status(httpStatus.OK).json(resConv(ticket));
+        res.status(200).json(resConv(ticket));
     });
 
     reply = catchAsync(async (req, res) => await withTransaction(async (session) => {
         let data = req.body;
         data.user = req.user.id;
         const updatedTicket = await SupportDBO.reply(data, { session });
-        res.status(httpStatus.OK).json(resConv(updatedTicket, 'Reply added successfully'));
+        res.status(200).json(resConv(updatedTicket, { message: 'Reply added successfully' }));
     }));
 
     getReplies = catchAsync(async (req, res) => await withTransaction(async (session) => {
         const replies = await SupportDBO.getReplies(req.body.ticket, req.body, { session });
-        res.status(httpStatus.OK).json(resConv(replies));
+        res.status(200).json(resConv(replies));
     }));
 
     replyDetail = catchAsync(async (req, res) => await withTransaction(async (session) => {
         const replies = await SupportDBO.replyDetail(req.body.id, { session });
-        res.status(httpStatus.OK).json(resConv(replies));
+        res.status(200).json(resConv(replies));
     }));
 
     updateTicket = catchAsync(async (req, res) => await withTransaction(async (session) => {
         const updatedTicket = await SupportDBO.update(req.body, { session });
-        res.status(httpStatus.OK).json(resConv(updatedTicket, 'Ticket updated successfully'));
+        res.status(200).json(resConv(updatedTicket, { message: 'Ticket updated successfully' }));
     }));
 
     assignTicket = catchAsync(async (req, res) => await withTransaction(async (session) => {
         const updatedTicket = await SupportDBO.update(req.body, { session });
-        res.status(httpStatus.OK).json(resConv(updatedTicket, `Ticket assigned to ${updatedTicket?.assignedTo?.name}`));
+        res.status(200).json(resConv(updatedTicket, { message: `Ticket assigned to ${updatedTicket?.assignedTo?.name}` }));
     }));
 
     markAsRead = catchAsync(async (req, res) => await withTransaction(async (session) => {
         const updatedTicket = await SupportDBO.markAsRead(req.body.id, { session });
-        res.status(httpStatus.OK).json(resConv(updatedTicket, 'Marked as read'));
+        res.status(200).json(resConv(updatedTicket, { message: 'Marked as read' }));
     }));
 
     deleteTicket = catchAsync(async (req, res) => await withTransaction(async (session) => {
         let res = await SupportDBO.delete(req.params.ticketId, { session });
-        res.status(httpStatus.NO_CONTENT).send(resConv(res), 'Ticket deleted successfully');
+        res.status(httpStatus.NO_CONTENT).send(resConv(res), { message: 'Ticket deleted successfully' });
     }));
 }
 

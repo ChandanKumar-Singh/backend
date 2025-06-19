@@ -1,4 +1,4 @@
-import Assets from "../config/Assets.js";
+import fs from 'fs/promises';
 
 class CommonDBO {
     async getCommonLists(key, data = {}, { session } = {}) {
@@ -43,23 +43,20 @@ class CommonDBO {
     }
 
     async getCountries({ session }) {
-        const { default: countries } = await import('../config/data/countries.json', {
-            assert: { type: 'json' }
-        });
+        const countriesRaw = await fs.readFile('server/config/data/countries.json', 'utf-8');
+        const countries = JSON.parse(countriesRaw);
         return countries;
     }
 
     async getStates(countryCode, { session } = {}) {
-        const { default: states } = await import('../config/data/states.json', {
-            assert: { type: 'json' }
-        });
+        const statesRaw = await fs.readFile('server/config/data/states.json', 'utf-8');
+        const states = JSON.parse(statesRaw);
         return countryCode ? states[countryCode] || [] : states;
     }
 
     async getCities(stateCode, countryCode, { session } = {}) {
-        const { default: cities } = await import('../config/data/cities.json', {
-            assert: { type: 'json' }
-        });
+        const citiesRaw = await fs.readFile('server/config/data/cities.json', 'utf-8');
+        const cities = JSON.parse(citiesRaw);
         if (stateCode && countryCode) {
             return (cities[countryCode] || []).filter(c => c.stateCode === stateCode);
         } else if (countryCode) {

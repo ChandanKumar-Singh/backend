@@ -74,7 +74,7 @@ const authenticate = (role) => async (req, res, next) => {
       }
       return res
         .status(httpStatus.UNAUTHORIZED)
-        .json(resConv(null, ResponseCodes.AUTH_ERRORS.UNAUTHORIZED_ACCESS, 0, new Error().stack, "AUTH_MISSING_TOKEN"));
+        .json(resConv(null, { message: ResponseCodes.AUTH_ERRORS.UNAUTHORIZED_ACCESS, code: 0, stackTrace: new Error().stack, errorCode: "AUTH_MISSING_TOKEN" }));
     }
 
     const token = authorization.split(" ")[1];
@@ -86,7 +86,7 @@ const authenticate = (role) => async (req, res, next) => {
   } catch (error) {
     return res
       .status(error.statusCode || httpStatus.INTERNAL_SERVER_ERROR)
-      .json(resConv(error, error.message, 0, new Error().stack, error.errorCode));
+      .json(resConv(error, { message: error.message, code: 0, stackTrace: new Error().stack, errorCode: error.errorCode }));
   }
 };
 
