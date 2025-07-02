@@ -1,5 +1,5 @@
 {
-  "name": "room_management_system",
+  "name": "root_be",
   "version": "1.0.0",
   "description": "A fresh and clean Node.js project template.",
   "main": "src/server.js",
