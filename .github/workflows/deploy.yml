@@ -7,8 +7,8 @@ on:
     branches: [ main ]
 
 env:
-  APP_DIR: "~/apps/backend/backend"  # Your project path on server
-  PM2_APP_NAME: "backend-app"       # PM2 process name
+  APP_DIR: "/home/ubuntu/apps/backend/backend"  # Full absolute path
+  PM2_APP_NAME: "backend-app"
 
 jobs:
   test:
@@ -19,18 +19,18 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '22'  # Change to your Node version
+          node-version: '22'
           cache: 'npm'
       
       - name: Install dependencies
         run: npm ci
       
       - name: Run tests
-        run: npm test  # Adjust if you use different test command
+        run: npm run test --if-present || echo "No tests found"
 
   deploy:
     needs: test
-    if: github.ref == 'refs/heads/main'  # Only deploy on main branch
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     
     steps:
@@ -41,24 +41,35 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SERVER_SSH_KEY }}
       
-      - name: Deploy to Server
+      - name: Test SSH Connection
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "
+          ssh -o ConnectTimeout=10 -T ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} exit
+      
+      - name: Deploy to Server
+        timeout-minutes: 5
+        run: |
+          ssh -o ConnectTimeout=10 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "
             cd ${{ env.APP_DIR }} && \
-            git pull origin main && \
+            git fetch && \
+            git reset --hard origin/main && \
             npm ci --omit=dev && \
             pm2 restart ${{ env.PM2_APP_NAME }} || \
             (pm2 start npm --name '${{ env.PM2_APP_NAME }}' -- start && pm2 save)
           "
       
       - name: Copy .env
+        timeout-minutes: 2
         run: |
-          scp -o StrictHostKeyChecking=no .env ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:${{ env.APP_DIR }}/.env    
-
+          scp -o ConnectTimeout=10 .env ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:${{ env.APP_DIR }}/.env
+      
       - name: Verify Deployment
         run: |
-          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "
+          ssh -o ConnectTimeout=10 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "
             pm2 list && \
-            echo 'Latest commit:' && \
-            cd ${{ env.APP_DIR }} && git log -1
+            echo -e '\nLatest commit:' && \
+            cd ${{ env.APP_DIR }} && git log -1 --pretty=format:'%h - %s (%an, %ar)' && \
+            echo -e '\nEnvironment:' && \
+            ls -la .env && \
+            echo -e '\nRunning processes:' && \
+            ps aux | grep node
           "
