@@ -51,6 +51,10 @@ jobs:
             (pm2 start npm --name '${{ env.PM2_APP_NAME }}' -- start && pm2 save)
           "
       
+      - name: Copy .env
+        run: |
+          scp -o StrictHostKeyChecking=no .env ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:${{ env.APP_DIR }}/.env    
+
       - name: Verify Deployment
         run: |
           ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "
