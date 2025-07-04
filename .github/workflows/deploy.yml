@@ -9,6 +9,8 @@ on:
 env:
   APP_DIR: "/home/ubuntu/apps/backend/backend"  # Full absolute path
   PM2_APP_NAME: "backend-app"
+  SERVER_IP: ${{ secrets.SERVER_IP }}
+  SERVER_USER: ${{ secrets.SERVER_USER }}
 
 jobs:
   test:
@@ -26,7 +28,7 @@ jobs:
         run: npm ci
       
       - name: Run tests
-        run: npm run test --if-present || echo "No tests found"
+        run: npm test
 
   deploy:
     needs: test
@@ -35,50 +37,67 @@ jobs:
     
     steps:
       - uses: actions/checkout@v4
-
-      - name: Test connection
-        run: |
-          ping -c 4 13.51.235.118
-          nc -zv 13.51.235.118 22
       
-      - name: Install SSH Key
+      - name: Verify server connectivity
+        run: |
+          ping -c 3 ${{ env.SERVER_IP }} || echo "Ping test failed"
+          nc -zv -w 5 ${{ env.SERVER_IP }} 22 || echo "Port test failed"
+      
+      - name: Setup SSH
         uses: webfactory/ssh-agent@v0.7.0
         with:
           ssh-private-key: ${{ secrets.SERVER_SSH_KEY }}
+          ssh-public-key: ${{ secrets.SERVER_SSH_PUBLIC_KEY }}
       
-      - name: Test SSH Connection
+      - name: Validate SSH connection
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh -o StrictHostKeyChecking=no -vvv ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "echo 'SSH test successful'"
+          ssh -o StrictHostKeyChecking=no \
+              -o UserKnownHostsFile=/dev/null \
+              -o ConnectTimeout=10 \
+              ${env.SERVER_USER}@${env.SERVER_IP} \
+              "echo 'SSH connection successful'"
       
-      - name: Deploy to Server
-        timeout-minutes: 5
+      - name: Deploy application
         run: |
-          ssh -o ConnectTimeout=10 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "
-            cd ${{ env.APP_DIR }} && \
-            git fetch && \
-            git reset --hard origin/main && \
-            npm ci --omit=dev && \
-            pm2 restart ${{ env.PM2_APP_NAME }} || \
-            (pm2 start npm --name '${{ env.PM2_APP_NAME }}' -- start && pm2 save)
+          ssh -o ConnectTimeout=10 ${env.SERVER_USER}@${env.SERVER_IP} "
+            set -e
+            echo 'Changing to app directory...'
+            cd ${env.APP_DIR}
+            
+            echo 'Updating repository...'
+            git fetch --all
+            git reset --hard origin/main
+            
+            echo 'Installing dependencies...'
+            npm ci --omit=dev
+            
+            echo 'Restarting application...'
+            if pm2 list | grep -q ${env.PM2_APP_NAME}; then
+              pm2 restart ${env.PM2_APP_NAME}
+            else
+              pm2 start npm --name '${env.PM2_APP_NAME}' -- start
+              pm2 save
+            fi
           "
+      
+      - name: Sync environment file
+        if: always()  # Runs even if previous steps fail
+        run: |
+          scp -o ConnectTimeout=10 \
+              -o StrictHostKeyChecking=no \
+              -o UserKnownHostsFile=/dev/null \
+              .env ${env.SERVER_USER}@${env.SERVER_IP}:${env.APP_DIR}/.env.tmp
           
-      
-      - name: Copy .env
-        timeout-minutes: 2
-        run: |
-          scp -o ConnectTimeout=10 .env ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:${{ env.APP_DIR }}/.env
-      
-      - name: Verify Deployment
-        run: |
-          ssh -o ConnectTimeout=10 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "
-            pm2 list && \
-            echo -e '\nLatest commit:' && \
-            cd ${{ env.APP_DIR }} && git log -1 --pretty=format:'%h - %s (%an, %ar)' && \
-            echo -e '\nEnvironment:' && \
-            ls -la .env && \
-            echo -e '\nRunning processes:' && \
-            ps aux | grep node
+          ssh -o ConnectTimeout=10 ${env.SERVER_USER}@${env.SERVER_IP} "
+            mv ${env.APP_DIR}/.env.tmp ${env.APP_DIR}/.env
+            chmod 600 ${env.APP_DIR}/.env
           "
+      
+      - name: Verify deployment
+        run: |
+          ssh -o ConnectTimeout=10 ${env.SERVER_USER}@${env.SERVER_IP} "
+            echo -e '\n=== PM2 Status ==='
+            pm2 list
+            
+            echo -e '\n=== Latest Commit ==='
+            cd
