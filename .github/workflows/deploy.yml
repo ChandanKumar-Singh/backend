@@ -48,7 +48,10 @@ jobs:
       
       - name: Test SSH Connection
         run: |
-          ssh -o ConnectTimeout=10 -T ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} exit
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh -o StrictHostKeyChecking=no -vvv ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "echo 'SSH test successful'"
       
       - name: Deploy to Server
         timeout-minutes: 5
