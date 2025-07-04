@@ -35,6 +35,11 @@ jobs:
     
     steps:
       - uses: actions/checkout@v4
+
+      - name: Test connection
+        run: |
+          ping -c 4 13.51.235.118
+          nc -zv 13.51.235.118 22
       
       - name: Install SSH Key
         uses: webfactory/ssh-agent@v0.7.0
