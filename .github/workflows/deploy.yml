@@ -52,10 +52,10 @@ jobs:
       - name: Validate SSH connection
         run: |
           ssh -o StrictHostKeyChecking=no \
-              -o UserKnownHostsFile=/dev/null \
-              -o ConnectTimeout=10 \
-              ${env.SERVER_USER}@${env.SERVER_IP} \
-              "echo 'SSH connection successful'"
+          -o UserKnownHostsFile=/dev/null \
+          -o ConnectTimeout=10 \
+          ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} \
+          "echo 'SSH connection successful'"
       
       - name: Deploy application
         run: |
