@@ -9,8 +9,8 @@ on:
 env:
   APP_DIR: "/home/ubuntu/apps/backend/backend"  # Full absolute path
   PM2_APP_NAME: "backend-app"
-  SERVER_IP: "13.51.235.118"
-  SERVER_USER: "ubuntu"
+  SERVER_IP: "192.168.1.100"
+  SERVER_USER: "singh"
 
 jobs:
   test:
