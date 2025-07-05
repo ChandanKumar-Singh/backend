@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 env:
-  APP_DIR: "/home/ubuntu/apps/backend/backend"  # Full absolute path
+  APP_DIR: "/home/ubuntu/apps/backend/backend"
   PM2_APP_NAME: "backend-app"
   SERVER_IP: "192.168.1.100"
   SERVER_USER: "singh"
@@ -37,14 +37,15 @@ jobs:
     
     steps:
       - uses: actions/checkout@v4
+      
       - name: Check GitHub Actions IP
         run: |
-          curl ifconfig.me
+          curl -s ifconfig.me
           echo "Compare this IP with your EC2 security group rules"
       
       - name: Verify server connectivity
         run: |
-          echo "Checking server connectivity... ${env.SERVER_IP} (${env.SERVER_USER}) \n ${env.APP_DIR} (${env.PM2_APP_NAME}) \n  Checking SSH and port connectivity"
+          echo "Checking server connectivity..."
           echo "Server IP: ${{ env.SERVER_IP }}"
           ping -c 3 ${{ env.SERVER_IP }} || echo "Ping test failed"
           nc -zv -w 5 ${{ env.SERVER_IP }} 22 || echo "Port test failed"
@@ -53,57 +54,60 @@ jobs:
         uses: webfactory/ssh-agent@v0.7.0
         with:
           ssh-private-key: ${{ secrets.SERVER_SSH_KEY }}
-          ssh-public-key: ${{ secrets.SERVER_SSH_PUBLIC_KEY }}
       
       - name: Validate SSH connection
         run: |
           ssh -o StrictHostKeyChecking=no \
-          -o UserKnownHostsFile=/dev/null \
-          -o ConnectTimeout=10 \
-          ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} \
-          "echo 'SSH connection successful'"
+              -o UserKnownHostsFile=/dev/null \
+              -o ConnectTimeout=10 \
+              ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} \
+              "echo 'SSH connection successful'"
       
       - name: Deploy application
         run: |
-          ssh -o ${env.SERVER_USER}@${env.SERVER_IP} "
-            set -e
-            echo 'Changing to app directory...'
-            cd ${env.APP_DIR}
-            
-            echo 'Updating repository...'
-            git fetch --all
-            git reset --hard origin/main
-            
-            echo 'Installing dependencies...'
-            npm ci --omit=dev
-            
-            echo 'Restarting application...'
-            if pm2 list | grep -q ${env.PM2_APP_NAME}; then
-              pm2 restart ${env.PM2_APP_NAME}
-            else
-              pm2 start npm --name '${env.PM2_APP_NAME}' -- start
-              pm2 save
-            fi
-          "
+          ssh -o StrictHostKeyChecking=no \
+              -o UserKnownHostsFile=/dev/null \
+              ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} \
+              "set -e
+              echo 'Changing to app directory...'
+              cd ${{ env.APP_DIR }}
+              
+              echo 'Updating repository...'
+              git fetch --all
+              git reset --hard origin/main
+              
+              echo 'Installing dependencies...'
+              npm ci --omit=dev
+              
+              echo 'Restarting application...'
+              if pm2 list | grep -q ${{ env.PM2_APP_NAME }}; then
+                pm2 restart ${{ env.PM2_APP_NAME }}
+              else
+                pm2 start npm --name '${{ env.PM2_APP_NAME }}' -- start
+                pm2 save
+              fi"
       
       - name: Sync environment file
-        if: always()  # Runs even if previous steps fail
+        if: always()
         run: |
-          scp -o ConnectTimeout=10 \
-              -o StrictHostKeyChecking=no \
+          scp -o StrictHostKeyChecking=no \
               -o UserKnownHostsFile=/dev/null \
-              .env ${env.SERVER_USER}@${env.SERVER_IP}:${env.APP_DIR}/.env.tmp
+              .env ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.APP_DIR }}/.env.tmp
           
-          ssh -o ConnectTimeout=10 ${env.SERVER_USER}@${env.SERVER_IP} "
-            mv ${env.APP_DIR}/.env.tmp ${env.APP_DIR}/.env
-            chmod 600 ${env.APP_DIR}/.env
-          "
+          ssh -o StrictHostKeyChecking=no \
+              -o UserKnownHostsFile=/dev/null \
+              ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} \
+              "mv ${{ env.APP_DIR }}/.env.tmp ${{ env.APP_DIR }}/.env && \
+               chmod 600 ${{ env.APP_DIR }}/.env"
       
       - name: Verify deployment
         run: |
-          ssh -o ConnectTimeout=10 ${env.SERVER_USER}@${env.SERVER_IP} "
-            echo -e '\n=== PM2 Status ==='
-            pm2 list
-            
-            echo -e '\n=== Latest Commit ==='
-            cd
+          ssh -o StrictHostKeyChecking=no \
+              -o UserKnownHostsFile=/dev/null \
+              ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} \
+              "echo -e '\n=== PM2 Status ==='
+               pm2 list
+               echo -e '\n=== Latest Commit ==='
+               cd ${{ env.APP_DIR }} && git log -1
+               echo -e '\n=== Application Health ==='
+               curl -s localhost:3000/health || echo 'Health check failed'"
