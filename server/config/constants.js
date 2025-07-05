@@ -30,6 +30,7 @@ const {
     WARNING_ENABLED,
     ERROR_ENABLED,
 } = process.env;
+console.log(PORT)
 
 // App Details
 const app = {
