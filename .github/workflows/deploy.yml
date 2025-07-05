@@ -37,6 +37,10 @@ jobs:
     
     steps:
       - uses: actions/checkout@v4
+      - name: Check GitHub Actions IP
+        run: |
+          curl ifconfig.me
+          echo "Compare this IP with your EC2 security group rules"
       
       - name: Verify server connectivity
         run: |
