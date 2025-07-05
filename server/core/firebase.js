@@ -5,7 +5,7 @@ import { dirname } from "../utils/PathUtils.js";
 import {logg, LogUtils} from "../utils/logger.js"
 
 try {
-    const filePath = path.resolve(dirname, "../../rental-room-management-system-firebase-adminsdk-fbsvc-99617f3842.json 09-06-49-729.json");
+    const filePath = path.resolve(dirname, "../../rental-room-management-system-firebase-adminsdk-fbsvc-99617f3842.json");
     const serviceAccount = JSON.parse(fs.readFileSync(filePath, "utf-8"));
     admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
