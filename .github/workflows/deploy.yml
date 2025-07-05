@@ -40,17 +40,18 @@ jobs:
         run: |
           curl -s ifconfig.me
           echo "Compare this IP with your EC2 security group rules"
+
       - name: Verify server connectivity
-  run: |
-    echo "Checking server connectivity..."
-    echo "Server IP: ${{ secrets.SERVER_IP }}"
-    # More detailed diagnostics:
-    echo "DNS resolution:"
-    nslookup ${{ secrets.SERVER_IP }} || dig ${{ secrets.SERVER_IP }}
-    echo "Traceroute:"
-    traceroute -w 3 -m 15 ${{ secrets.SERVER_IP }} || echo "Traceroute not available"
-    echo "Port check alternatives:"
-    timeout 5 bash -c "</dev/tcp/${{ secrets.SERVER_IP }}/22" && echo "Port open" || echo "Port closed"    
+        run: |
+          echo "Checking server connectivity..."
+          echo "Server IP: ${{ secrets.SERVER_IP }}"
+          # More detailed diagnostics:
+          echo "DNS resolution:"
+          nslookup ${{ secrets.SERVER_IP }} || dig ${{ secrets.SERVER_IP }}
+          echo "Traceroute:"
+          traceroute -w 3 -m 15 ${{ secrets.SERVER_IP }} || echo "Traceroute not available"
+          echo "Port check alternatives:"
+          timeout 5 bash -c "</dev/tcp/${{ secrets.SERVER_IP }}/22" && echo "Port open" || echo "Port closed"    
       
       - name: Verify server connectivity
         run: |
