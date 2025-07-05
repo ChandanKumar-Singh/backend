@@ -9,8 +9,6 @@ on:
 env:
   APP_DIR: "/home/ubuntu/apps/backend/backend"
   PM2_APP_NAME: "backend-app"
-  SERVER_IP: ${ { secrets.SERVER_IP } }
-  SERVER_USER: ${ { secrets.SERVER_USER } }
 
 jobs:
   test:
@@ -46,9 +44,9 @@ jobs:
       - name: Verify server connectivity
         run: |
           echo "Checking server connectivity..."
-          echo "Server IP: ${{ env.SERVER_IP }}"
-          ping -c 3 ${{ env.SERVER_IP }} || echo "Ping test failed"
-          nc -zv -w 5 ${{ env.SERVER_IP }} 22 || echo "Port test failed"
+          echo "Server IP: ${{ secrets.SERVER_IP }}"
+          ping -c 3 ${{ secrets.SERVER_IP }} || echo "Ping test failed"
+          nc -zv -w 5 ${{ secrets.SERVER_IP }} 22 || echo "Port test failed"
       
       - name: Setup SSH
         uses: webfactory/ssh-agent@v0.7.0
@@ -60,14 +58,14 @@ jobs:
           ssh -o StrictHostKeyChecking=no \
               -o UserKnownHostsFile=/dev/null \
               -o ConnectTimeout=10 \
-              ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} \
+              ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
               "echo 'SSH connection successful'"
       
       - name: Deploy application
         run: |
           ssh -o StrictHostKeyChecking=no \
               -o UserKnownHostsFile=/dev/null \
-              ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} \
+              ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
               "set -e
               echo 'Changing to app directory...'
               cd ${{ env.APP_DIR }}
@@ -92,11 +90,11 @@ jobs:
         run: |
           scp -o StrictHostKeyChecking=no \
               -o UserKnownHostsFile=/dev/null \
-              .env ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.APP_DIR }}/.env.tmp
+              .env ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:${{ env.APP_DIR }}/.env.tmp
           
           ssh -o StrictHostKeyChecking=no \
               -o UserKnownHostsFile=/dev/null \
-              ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} \
+              ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
               "mv ${{ env.APP_DIR }}/.env.tmp ${{ env.APP_DIR }}/.env && \
                chmod 600 ${{ env.APP_DIR }}/.env"
       
@@ -104,7 +102,7 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no \
               -o UserKnownHostsFile=/dev/null \
-              ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} \
+              ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
               "echo -e '\n=== PM2 Status ==='
                pm2 list
                echo -e '\n=== Latest Commit ==='
