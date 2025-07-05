@@ -9,8 +9,8 @@ on:
 env:
   APP_DIR: "/home/ubuntu/apps/backend/backend"
   PM2_APP_NAME: "backend-app"
-  SERVER_IP: "192.168.1.100"
-  SERVER_USER: "singh"
+  SERVER_IP: ${ { secrets.SERVER_IP } }
+  SERVER_USER: ${ { secrets.SERVER_USER } }
 
 jobs:
   test:
