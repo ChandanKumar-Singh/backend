@@ -1,77 +1,105 @@
-deploy:
-  needs: test
-  if: github.ref == 'refs/heads/main'
-  runs-on: ubuntu-latest
+name: Node.js CI/CD Deployment
 
-  steps:
-    - uses: actions/checkout@v4
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
-    - name: Verify server connectivity
-      run: |
-        echo "Pinging ${{ env.SERVER_IP }}..."
-        ping -c 3 ${{ env.SERVER_IP }} || echo "Ping test failed"
+env:
+  APP_DIR: "/home/ubuntu/apps/backend/backend"  # Full absolute path
+  PM2_APP_NAME: "backend-app"
+  SERVER_IP: ${{ secrets.SERVER_IP }}
+  SERVER_USER: ${{ secrets.SERVER_USER }}
 
-        echo "Testing SSH port 22..."
-        nc -zv -w 5 ${{ env.SERVER_IP }} 22 || echo "Port test failed"
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run tests
+        run: npm test
 
-    - name: Setup SSH
-      uses: webfactory/ssh-agent@v0.7.0
-      with:
-        ssh-private-key: ${{ secrets.SERVER_SSH_KEY }}
-
-    - name: Validate SSH connection
-      run: |
-        ssh -o StrictHostKeyChecking=no \
-            -o UserKnownHostsFile=/dev/null \
-            -o ConnectTimeout=10 \
-            ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} \
-            "echo '✅ SSH connection successful'"
-
-    - name: Sync .env before deploy
-      run: |
-        echo "Transferring .env to server..."
-        scp -o ConnectTimeout=10 \
-            -o StrictHostKeyChecking=no \
-            -o UserKnownHostsFile=/dev/null \
-            .env ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.APP_DIR }}/.env.tmp
-
-        echo "Setting permissions..."
-        ssh ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} "
-          mv ${{ env.APP_DIR }}/.env.tmp ${{ env.APP_DIR }}/.env
-          chmod 600 ${{ env.APP_DIR }}/.env
-        "
-
-    - name: Deploy application with logs
-      run: |
-        ssh -T ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} << 'EOF'
-        set -xe
-
-        echo "📁 Changing to app directory..."
-        cd "${APP_DIR}"
-
-        echo "📦 Fetching latest code..."
-        git fetch --all
-        git reset --hard origin/main
-
-        echo "📦 Installing prod dependencies..."
-        npm ci --omit=dev
-
-        echo "🚀 Restarting app with PM2..."
-        if pm2 list | grep -q "${PM2_APP_NAME}"; then
-          pm2 restart "${PM2_APP_NAME}"
-        else
-          pm2 start npm --name "${PM2_APP_NAME}" -- start
-          pm2 save
-        fi
-        EOF
-
-    - name: Verify deployment
-      run: |
-        ssh -T ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} << 'EOF'
-        echo -e '\n✅ === PM2 STATUS ==='
-        pm2 list
-
-        echo -e '\n✅ === LATEST COMMIT ==='
-        cd "${APP_DIR}"
-        git log -1 --oneline
-        EOF
+  deploy:
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Verify server connectivity
+        run: |
+          echo "Checking server connectivity... ${env.SERVER_IP} (${env.SERVER_USER}) \n ${env.APP_DIR} (${env.PM2_APP_NAME}) \n  Checking SSH and port connectivity"
+          echo "Server IP: ${{ env.SERVER_IP }}"
+          ping -c 3 ${{ env.SERVER_IP }} || echo "Ping test failed"
+          nc -zv -w 5 ${{ env.SERVER_IP }} 22 || echo "Port test failed"
+      
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.SERVER_SSH_KEY }}
+          ssh-public-key: ${{ secrets.SERVER_SSH_PUBLIC_KEY }}
+      
+      - name: Validate SSH connection
+        run: |
+          ssh -o StrictHostKeyChecking=no \
+          -o UserKnownHostsFile=/dev/null \
+          -o ConnectTimeout=10 \
+          ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} \
+          "echo 'SSH connection successful'"
+      
+      - name: Deploy application
+        run: |
+          ssh -o ${env.SERVER_USER}@${env.SERVER_IP} "
+            set -e
+            echo 'Changing to app directory...'
+            cd ${env.APP_DIR}
+            
+            echo 'Updating repository...'
+            git fetch --all
+            git reset --hard origin/main
+            
+            echo 'Installing dependencies...'
+            npm ci --omit=dev
+            
+            echo 'Restarting application...'
+            if pm2 list | grep -q ${env.PM2_APP_NAME}; then
+              pm2 restart ${env.PM2_APP_NAME}
+            else
+              pm2 start npm --name '${env.PM2_APP_NAME}' -- start
+              pm2 save
+            fi
+          "
+      
+      - name: Sync environment file
+        if: always()  # Runs even if previous steps fail
+        run: |
+          scp -o ConnectTimeout=10 \
+              -o StrictHostKeyChecking=no \
+              -o UserKnownHostsFile=/dev/null \
+              .env ${env.SERVER_USER}@${env.SERVER_IP}:${env.APP_DIR}/.env.tmp
+          
+          ssh -o ConnectTimeout=10 ${env.SERVER_USER}@${env.SERVER_IP} "
+            mv ${env.APP_DIR}/.env.tmp ${env.APP_DIR}/.env
+            chmod 600 ${env.APP_DIR}/.env
+          "
+      
+      - name: Verify deployment
+        run: |
+          ssh -o ConnectTimeout=10 ${env.SERVER_USER}@${env.SERVER_IP} "
+            echo -e '\n=== PM2 Status ==='
+            pm2 list
+            
+            echo -e '\n=== Latest Commit ==='
+            cd
