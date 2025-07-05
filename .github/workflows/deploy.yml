@@ -59,7 +59,7 @@ jobs:
       
       - name: Deploy application
         run: |
-          ssh -o ConnectTimeout=10 ${env.SERVER_USER}@${env.SERVER_IP} "
+          ssh -o ${env.SERVER_USER}@${env.SERVER_IP} "
             set -e
             echo 'Changing to app directory...'
             cd ${env.APP_DIR}
